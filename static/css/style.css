@@ -1,0 +1,99 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background-color: #f5f5f7;
+    color: #1d1d1f;
+    line-height: 1.6;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.container {
+    max-width: 600px;
+    width: 90%;
+    text-align: center;
+    background: white;
+    padding: 60px 40px;
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+}
+
+h1 {
+    font-size: 2.5em;
+    font-weight: 600;
+    margin-bottom: 20px;
+    color: #1d1d1f;
+}
+
+.subtitle {
+    font-size: 1.2em;
+    color: #86868b;
+    margin-bottom: 50px;
+    font-weight: 400;
+}
+
+.create-form-btn {
+    background: #007aff;
+    color: white;
+    border: none;
+    padding: 16px 32px;
+    font-size: 1.1em;
+    font-weight: 600;
+    border-radius: 50px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0, 122, 255, 0.3);
+    min-width: 220px;
+}
+
+.create-form-btn:hover {
+    background: #0056b3;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 122, 255, 0.4);
+}
+
+.create-form-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 10px rgba(0, 122, 255, 0.3);
+}
+
+.message {
+    margin-top: 30px;
+    padding: 15px;
+    border-radius: 10px;
+    font-weight: 500;
+    opacity: 0;
+    transition: all 0.3s ease;
+}
+
+.message.success {
+    background: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.message.show {
+    opacity: 1;
+}
+
+@media (max-width: 768px) {
+    .container {
+        padding: 40px 20px;
+    }
+    
+    h1 {
+        font-size: 2em;
+    }
+    
+    .create-form-btn {
+        min-width: 200px;
+        padding: 14px 28px;
+    }
+}
