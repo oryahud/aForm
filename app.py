@@ -19,7 +19,7 @@ def save_forms(forms):
 @app.route('/')
 def index():
     forms = load_forms()
-    return render_template('index.html', has_forms=len(forms) > 0)
+    return render_template('my_forms.html', forms=forms)
 
 @app.route('/create-form', methods=['POST'])
 def create_form():
