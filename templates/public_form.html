@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ form.name }} - aForm</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/public_form.css') }}">
+</head>
+<body>
+    <div class="public-form-container">
+        <div class="form-header">
+            <h1>{{ form.name }}</h1>
+            <p class="form-description">Please fill out this form</p>
+        </div>
+
+        <form id="publicForm" class="public-form">
+            {% for question in form.questions %}
+            <div class="question-block" data-question-id="{{ question.id }}">
+                <div class="question-header">
+                    <h3 class="question-title">
+                        {{ question.title }}
+                        {% if question.required %}
+                        <span class="required-mark">*</span>
+                        {% endif %}
+                    </h3>
+                </div>
+
+                <div class="question-answer">
+                    {% if question.type == 'text' %}
+                        <input 
+                            type="text" 
+                            name="{{ question.id }}" 
+                            id="{{ question.id }}"
+                            placeholder="{{ question.placeholder or 'Enter your answer...' }}"
+                            {% if question.required %}required{% endif %}
+                            class="text-input"
+                        >
+                    {% elif question.type == 'radio' %}
+                        <div class="radio-group">
+                            {% for option in question.options %}
+                            <div class="radio-option">
+                                <input 
+                                    type="{{ 'checkbox' if question.multiple else 'radio' }}" 
+                                    name="{{ question.id }}{{ '[]' if question.multiple else '' }}" 
+                                    id="{{ question.id }}_{{ loop.index0 }}"
+                                    value="{{ option }}"
+                                    {% if question.required and not question.multiple %}required{% endif %}
+                                >
+                                <label for="{{ question.id }}_{{ loop.index0 }}">{{ option }}</label>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+
+            <div class="form-actions">
+                <button type="submit" class="submit-btn">Submit Form</button>
+            </div>
+        </form>
+
+        <div id="successMessage" class="success-message" style="display: none;">
+            <div class="success-icon">✅</div>
+            <h2>Thank you!</h2>
+            <p>Your form has been submitted successfully.</p>
+        </div>
+    </div>
+
+    <script>
+        window.formData = {{ form | tojson }};
+    </script>
+    <script src="{{ url_for('static', filename='js/public_form.js') }}"></script>
+</body>
+</html>

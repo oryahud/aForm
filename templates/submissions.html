@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ form.name }} - Submissions</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/submissions.css') }}">
+</head>
+<body>
+    <div class="submissions-container">
+        <!-- Header -->
+        <div class="submissions-header">
+            <div class="header-content">
+                <div class="header-left">
+                    <h1>{{ form.name }}</h1>
+                    <span class="submissions-count">{{ form.submissions|length }} submission{{ 's' if form.submissions|length != 1 else '' }}</span>
+                </div>
+                <div class="header-actions">
+                    <button class="secondary-btn" onclick="window.location.href='/form/{{ form.name }}'">
+                        ← Back to Editor
+                    </button>
+                    {% if form.status == 'published' %}
+                    <button class="create-form-btn" onclick="copyShareLink()">
+                        Copy Share Link
+                    </button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="submissions-content">
+            {% if form.submissions %}
+                <div class="submissions-table-container">
+                    <table class="submissions-table">
+                        <thead>
+                            <tr>
+                                <th>Submitted At</th>
+                                {% for question in form.questions %}
+                                <th>{{ question.title }}</th>
+                                {% endfor %}
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for submission in form.submissions %}
+                            <tr>
+                                <td class="submission-date">
+                                    {{ submission.submitted_at[:10] }}<br>
+                                    <small>{{ submission.submitted_at[11:19] }}</small>
+                                </td>
+                                {% for question in form.questions %}
+                                <td class="submission-answer">
+                                    {% set answer = submission.responses.get(question.id, '') %}
+                                    {% if answer is iterable and answer is not string %}
+                                        {{ answer|join(', ') }}
+                                    {% else %}
+                                        {{ answer or '-' }}
+                                    {% endif %}
+                                </td>
+                                {% endfor %}
+                                <td>
+                                    <button class="view-btn" onclick="viewSubmission('{{ submission.id }}')">View</button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="empty-submissions">
+                    <div class="empty-icon">📝</div>
+                    <h2>No submissions yet</h2>
+                    <p>Share your form to start receiving submissions!</p>
+                    {% if form.status == 'published' %}
+                    <div class="share-link-container">
+                        <input type="text" id="shareLink" value="{{ request.url_root }}submit/{{ form.name }}" readonly>
+                        <button class="create-form-btn" onclick="copyShareLink()">Copy Link</button>
+                    </div>
+                    {% else %}
+                    <p><em>Form needs to be published first.</em></p>
+                    {% endif %}
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Submission Detail Modal -->
+    <div id="submissionModal" class="modal">
+        <div class="modal-content submission-modal">
+            <div class="modal-header">
+                <h2>Submission Details</h2>
+                <button class="close-btn" onclick="closeSubmissionModal()">&times;</button>
+            </div>
+            <div class="modal-body" id="submissionDetails">
+                <!-- Submission details will be rendered here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        window.formData = {{ form | tojson }};
+    </script>
+    <script src="{{ url_for('static', filename='js/submissions.js') }}"></script>
+</body>
+</html>

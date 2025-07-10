@@ -43,6 +43,30 @@
     align-items: center;
 }
 
+.publish-btn {
+    background: #34c759;
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 50px;
+    font-size: 1em;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(52, 199, 89, 0.3);
+}
+
+.publish-btn:hover {
+    background: #28a745;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(52, 199, 89, 0.4);
+}
+
+.publish-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 10px rgba(52, 199, 89, 0.3);
+}
+
 .builder-content {
     display: flex;
     max-width: 1400px;

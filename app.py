@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request, jsonify, redirect, url_for
 import json
 import os
+import uuid
 from datetime import datetime
 
 app = Flask(__name__)
@@ -39,6 +40,8 @@ def create_form():
         'name': form_name,
         'created_at': datetime.now().isoformat(),
         'updated_at': datetime.now().isoformat(),
+        'status': 'draft',
+        'submissions': [],
         'questions': [
             {
                 'id': 'q_1',
@@ -103,6 +106,68 @@ def add_question(form_name):
     save_forms(forms)
     
     return jsonify({'question': new_question})
+
+@app.route('/api/form/<form_name>/publish', methods=['POST'])
+def publish_form(form_name):
+    forms = load_forms()
+    form_index = next((i for i, f in enumerate(forms) if f['name'] == form_name), None)
+    
+    if form_index is None:
+        return jsonify({'error': 'Form not found'}), 404
+    
+    forms[form_index]['status'] = 'published'
+    forms[form_index]['updated_at'] = datetime.now().isoformat()
+    save_forms(forms)
+    
+    share_url = f"{request.url_root}submit/{form_name}"
+    return jsonify({'message': 'Form published successfully!', 'share_url': share_url})
+
+@app.route('/submit/<form_name>')
+def public_form(form_name):
+    forms = load_forms()
+    form = next((f for f in forms if f['name'] == form_name), None)
+    
+    if not form or form.get('status') != 'published':
+        return render_template('error.html', message='Form not found or not published'), 404
+    
+    return render_template('public_form.html', form=form)
+
+@app.route('/api/form/<form_name>/submit', methods=['POST'])
+def submit_form(form_name):
+    forms = load_forms()
+    form_index = next((i for i, f in enumerate(forms) if f['name'] == form_name), None)
+    
+    if form_index is None or forms[form_index].get('status') != 'published':
+        return jsonify({'error': 'Form not found or not published'}), 404
+    
+    data = request.get_json()
+    responses = data.get('responses', {})
+    
+    # Create submission
+    submission = {
+        'id': str(uuid.uuid4()),
+        'submitted_at': datetime.now().isoformat(),
+        'responses': responses
+    }
+    
+    # Add to form submissions
+    if 'submissions' not in forms[form_index]:
+        forms[form_index]['submissions'] = []
+    
+    forms[form_index]['submissions'].append(submission)
+    save_forms(forms)
+    
+    return jsonify({'message': 'Form submitted successfully!', 'submission_id': submission['id']})
+
+@app.route('/form/<form_name>/submissions')
+def view_submissions(form_name):
+    forms = load_forms()
+    form = next((f for f in forms if f['name'] == form_name), None)
+    
+    if not form:
+        return redirect(url_for('index'))
+    
+    return render_template('submissions.html', form=form)
 
 @app.route('/my-forms')
 def my_forms():

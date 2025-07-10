@@ -280,6 +280,54 @@ async function saveForm() {
     }
 }
 
+// Publish form
+async function publishForm() {
+    try {
+        const response = await fetch(`/api/form/${window.formData.name}/publish`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            
+            // Show success with share URL
+            const publishBtn = document.querySelector('.publish-btn');
+            publishBtn.textContent = 'Published!';
+            publishBtn.style.background = '#34c759';
+            
+            // Show share URL
+            const shareUrl = data.share_url;
+            const message = `Form published successfully!\n\nShare this link:\n${shareUrl}`;
+            alert(message);
+            
+            // Copy to clipboard
+            navigator.clipboard.writeText(shareUrl).then(() => {
+                console.log('Share URL copied to clipboard');
+            }).catch(() => {
+                console.log('Could not copy to clipboard');
+            });
+            
+            setTimeout(() => {
+                publishBtn.textContent = 'Publish';
+                publishBtn.style.background = '';
+            }, 3000);
+        } else {
+            alert('Failed to publish form. Please try again.');
+        }
+    } catch (error) {
+        console.error('Error publishing form:', error);
+        alert('Failed to publish form. Please try again.');
+    }
+}
+
+// View submissions
+function viewSubmissions() {
+    window.location.href = `/form/${window.formData.name}/submissions`;
+}
+
 // Keyboard shortcuts
 document.addEventListener('keydown', function(e) {
     if (e.ctrlKey || e.metaKey) {
