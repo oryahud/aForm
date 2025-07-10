@@ -1,8 +1,14 @@
 document.addEventListener('DOMContentLoaded', function() {
     const form = document.getElementById('publicForm');
     
+    if (!form) {
+        console.error('Form element not found');
+        return;
+    }
+    
     form.addEventListener('submit', async function(e) {
         e.preventDefault();
+        console.log('Form submitted, processing...');
         
         const submitBtn = form.querySelector('.submit-btn');
         const originalText = submitBtn.textContent;
@@ -43,11 +49,22 @@ document.addEventListener('DOMContentLoaded', function() {
             
             if (response.ok) {
                 const data = await response.json();
+                console.log('Form submission successful:', data);
                 
                 // Show success message
-                document.querySelector('.public-form-container').style.display = 'none';
+                const formContainer = document.querySelector('.public-form-container .public-form');
                 const successMessage = document.getElementById('successMessage');
-                successMessage.style.display = 'block';
+                
+                if (formContainer) {
+                    formContainer.style.display = 'none';
+                }
+                
+                if (successMessage) {
+                    successMessage.style.display = 'block';
+                    console.log('Success message should now be visible');
+                } else {
+                    console.error('Success message element not found');
+                }
                 
             } else {
                 const error = await response.json();
