@@ -58,15 +58,6 @@ function viewSubmission(submissionId) {
         `;
     });
     
-    // Show submission status
-    const status = submission.status || 'pending';
-    html += `
-        <div class="submission-status-info">
-            <p style="text-align: center; color: #86868b; margin: 0;">
-                Status: <span class="status-badge status-${status}">${status.charAt(0).toUpperCase() + status.slice(1)}</span>
-            </p>
-        </div>
-    `;
     
     detailsContainer.innerHTML = html;
     modal.className = 'modal show';

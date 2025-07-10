@@ -161,7 +161,6 @@ def submit_form(form_name):
     submission = {
         'id': str(uuid.uuid4()),
         'submitted_at': datetime.now().isoformat(),
-        'status': 'pending',
         'responses': responses
     }
     
@@ -172,7 +171,7 @@ def submit_form(form_name):
     forms[form_index]['submissions'].append(submission)
     save_forms(forms)
     
-    return jsonify({'message': 'Form submitted successfully!', 'submission_id': submission['id'], 'review_url': f"/review/{submission['id']}/{form_name}"})
+    return jsonify({'message': 'Form submitted successfully!', 'submission_id': submission['id']})
 
 @app.route('/form/<form_name>/submissions')
 def view_submissions(form_name):
@@ -184,31 +183,6 @@ def view_submissions(form_name):
     
     return render_template('submissions.html', form=form)
 
-@app.route('/api/form/<form_name>/submission/<submission_id>/approve', methods=['POST'])
-def approve_submission(form_name, submission_id):
-    forms = load_forms()
-    form_index = next((i for i, f in enumerate(forms) if f['name'] == form_name), None)
-    
-    if form_index is None:
-        return jsonify({'error': 'Form not found'}), 404
-    
-    submissions = forms[form_index].get('submissions', [])
-    submission_index = next((i for i, s in enumerate(submissions) if s['id'] == submission_id), None)
-    
-    if submission_index is None:
-        return jsonify({'error': 'Submission not found'}), 404
-    
-    data = request.get_json()
-    action = data.get('action')  # 'approve' or 'reject'
-    
-    if action not in ['approve', 'reject']:
-        return jsonify({'error': 'Invalid action'}), 400
-    
-    forms[form_index]['submissions'][submission_index]['status'] = 'approved' if action == 'approve' else 'rejected'
-    forms[form_index]['updated_at'] = datetime.now().isoformat()
-    save_forms(forms)
-    
-    return jsonify({'message': f'Submission {action}d successfully'})
 
 @app.route('/api/form/<form_name>/delete', methods=['DELETE'])
 def delete_form(form_name):
@@ -223,20 +197,6 @@ def delete_form(form_name):
     
     return jsonify({'message': 'Form deleted successfully'})
 
-@app.route('/review/<submission_id>/<form_name>')
-def review_submission(submission_id, form_name):
-    forms = load_forms()
-    form = next((f for f in forms if f['name'] == form_name), None)
-    
-    if not form:
-        return render_template('error.html', message='Form not found'), 404
-    
-    submission = next((s for s in form.get('submissions', []) if s['id'] == submission_id), None)
-    
-    if not submission:
-        return render_template('error.html', message='Submission not found'), 404
-    
-    return render_template('review_submission.html', form=form, submission=submission)
 
 @app.route('/my-forms')
 def my_forms():
