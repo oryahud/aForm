@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ form.name }} - Form Builder</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/form_builder.css') }}">
+</head>
+<body>
+    <div class="form-builder">
+        <!-- Header -->
+        <div class="builder-header">
+            <div class="header-content">
+                <div class="header-left">
+                    <h1>{{ form.name }}</h1>
+                    <span class="form-status">Form Builder</span>
+                </div>
+                <div class="header-actions">
+                    <button class="secondary-btn" onclick="window.location.href='/my-forms'">
+                        ← Back to Forms
+                    </button>
+                    <button class="create-form-btn" onclick="saveForm()">
+                        Save Form
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="builder-content">
+            <!-- Questions Sidebar -->
+            <div class="questions-sidebar">
+                <div class="sidebar-header">
+                    <h3>Questions</h3>
+                    <button class="add-question-btn" onclick="addQuestion()">+ Add Question</button>
+                </div>
+                <div class="questions-list" id="questionsList">
+                    <!-- Questions will be rendered here -->
+                </div>
+            </div>
+
+            <!-- Question Editor -->
+            <div class="question-editor">
+                <div class="editor-header">
+                    <input type="text" id="questionTitle" placeholder="Question Title" class="question-title-input">
+                    <button class="delete-question-btn" onclick="deleteCurrentQuestion()">Delete Question</button>
+                </div>
+
+                <div class="question-content">
+                    <div class="form-group">
+                        <label>Answer Type:</label>
+                        <select id="answerType" onchange="toggleAnswerOptions()">
+                            <option value="text">Text Input</option>
+                            <option value="radio">Radio Button</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="questionRequired"> Required
+                        </label>
+                    </div>
+
+                    <!-- Text input settings -->
+                    <div class="form-group" id="textInputGroup" style="display: none;">
+                        <label>Placeholder Text:</label>
+                        <input type="text" id="placeholderText" placeholder="Enter placeholder text for the input field...">
+                    </div>
+
+                    <!-- Options for radio buttons -->
+                    <div class="form-group" id="optionsGroup" style="display: none;">
+                        <label>Options:</label>
+                        <div class="radio-options-preview" id="radioOptionsPreview">
+                            <!-- Radio button preview will be rendered here -->
+                        </div>
+                        <div class="options-list" id="optionsList">
+                            <!-- Options will be rendered here -->
+                        </div>
+                        <button class="secondary-btn" onclick="addOption()">+ Add Option</button>
+                        
+                        <div class="form-group">
+                            <label>
+                                <input type="checkbox" id="allowMultiple"> Allow Multiple Selection
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize form data
+        window.formData = {{ form | tojson }};
+        window.currentQuestionIndex = 0;
+    </script>
+    <script src="{{ url_for('static', filename='js/form_builder.js') }}"></script>
+</body>
+</html>

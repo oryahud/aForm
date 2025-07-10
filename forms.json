@@ -1,1 +1,48 @@
-[]
+[
+  {
+    "name": "wow",
+    "created_at": "2025-07-10T18:09:48.636982",
+    "updated_at": "2025-07-10T18:09:48.637015"
+  },
+  {
+    "name": "aaa",
+    "created_at": "2025-07-10T18:21:04.174504",
+    "updated_at": "2025-07-10T18:22:31.364240",
+    "steps": [
+      {
+        "id": "step_1",
+        "questions": [
+          {
+            "id": "q_1752160896059",
+            "text": "Tell me your name",
+            "type": "text",
+            "required": false
+          },
+          {
+            "id": "q_1752160925607",
+            "text": "Chose your pets",
+            "type": "checkbox",
+            "required": false,
+            "options": [
+              "Option 1",
+              "Option 2"
+            ],
+            "multiple": true
+          },
+          {
+            "id": "q_1752160949700",
+            "text": "what what what",
+            "type": "radio",
+            "required": false,
+            "options": [
+              "Option 1",
+              "Option 2"
+            ],
+            "multiple": true
+          }
+        ],
+        "title": "Step 1"
+      }
+    ]
+  }
+]
