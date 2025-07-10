@@ -61,7 +61,10 @@
                                 </td>
                                 {% endfor %}
                                 <td>
-                                    <button class="view-btn" onclick="viewSubmission('{{ submission.id }}')">View</button>
+                                    <div class="submission-actions">
+                                        <button class="view-btn" onclick="viewSubmission('{{ submission.id }}')">View</button>
+                                        <button class="delete-btn" onclick="deleteSubmission('{{ submission.id }}')">Delete</button>
+                                    </div>
                                 </td>
                             </tr>
                             {% endfor %}

@@ -75,7 +75,32 @@ window.addEventListener('click', function(e) {
     }
 });
 
-// Note: Approval functionality removed - this is now handled by the submitter, not form creator
+// Delete submission function
+async function deleteSubmission(submissionId) {
+    if (!confirm('Are you sure you want to delete this submission? This action cannot be undone.')) {
+        return;
+    }
+    
+    try {
+        const response = await fetch(`/api/form/${window.formData.name}/submission/${submissionId}/delete`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
+        
+        if (response.ok) {
+            // Reload the page to refresh the submissions list
+            window.location.reload();
+        } else {
+            const error = await response.json();
+            alert('Error: ' + (error.error || 'Failed to delete submission'));
+        }
+    } catch (error) {
+        console.error('Error deleting submission:', error);
+        alert('Failed to delete submission. Please try again.');
+    }
+}
 
 // Initialize share link if present
 document.addEventListener('DOMContentLoaded', function() {

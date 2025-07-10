@@ -119,6 +119,28 @@
     background: #0056b3;
 }
 
+.submission-actions {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+}
+
+.delete-btn {
+    background: #ff3b30;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 0.9em;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.delete-btn:hover {
+    background: #d70015;
+}
+
 
 .empty-submissions {
     text-align: center;

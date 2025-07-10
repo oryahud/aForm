@@ -197,6 +197,26 @@ def delete_form(form_name):
     
     return jsonify({'message': 'Form deleted successfully'})
 
+@app.route('/api/form/<form_name>/submission/<submission_id>/delete', methods=['DELETE'])
+def delete_submission(form_name, submission_id):
+    forms = load_forms()
+    form_index = next((i for i, f in enumerate(forms) if f['name'] == form_name), None)
+    
+    if form_index is None:
+        return jsonify({'error': 'Form not found'}), 404
+    
+    submissions = forms[form_index].get('submissions', [])
+    submission_index = next((i for i, s in enumerate(submissions) if s['id'] == submission_id), None)
+    
+    if submission_index is None:
+        return jsonify({'error': 'Submission not found'}), 404
+    
+    forms[form_index]['submissions'].pop(submission_index)
+    forms[form_index]['updated_at'] = datetime.now().isoformat()
+    save_forms(forms)
+    
+    return jsonify({'message': 'Submission deleted successfully'})
+
 
 @app.route('/my-forms')
 def my_forms():

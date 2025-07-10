@@ -1,5 +1,7 @@
 // Global state
 let currentQuestionIndex = 0;
+let hasUnsavedChanges = false;
+let lastSavedState = null;
 
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', function() {
@@ -14,7 +16,24 @@ document.addEventListener('DOMContentLoaded', function() {
     if (window.formData.questions.length > 0) {
         selectQuestion(0);
     }
+    
+    // Save initial state for unsaved changes detection
+    lastSavedState = JSON.stringify(window.formData.questions);
+    
+    // Add beforeunload event listener
+    window.addEventListener('beforeunload', function(e) {
+        if (hasUnsavedChanges) {
+            e.preventDefault();
+            e.returnValue = '';
+        }
+    });
 });
+
+// Check for unsaved changes
+function checkForUnsavedChanges() {
+    const currentState = JSON.stringify(window.formData.questions);
+    hasUnsavedChanges = currentState !== lastSavedState;
+}
 
 // Question management
 function renderQuestions() {
@@ -80,11 +99,13 @@ function renderQuestionEditor() {
 document.getElementById('questionTitle').addEventListener('input', function(e) {
     window.formData.questions[currentQuestionIndex].title = e.target.value;
     renderQuestions();
+    checkForUnsavedChanges();
 });
 
 // Placeholder text editing
 document.getElementById('placeholderText').addEventListener('input', function(e) {
     window.formData.questions[currentQuestionIndex].placeholder = e.target.value;
+    checkForUnsavedChanges();
 });
 
 // Answer type change
@@ -108,17 +129,20 @@ document.getElementById('answerType').addEventListener('change', function(e) {
     
     toggleAnswerOptions();
     renderQuestions();
+    checkForUnsavedChanges();
 });
 
 // Required checkbox change
 document.getElementById('questionRequired').addEventListener('change', function(e) {
     window.formData.questions[currentQuestionIndex].required = e.target.checked;
+    checkForUnsavedChanges();
 });
 
 // Multiple selection change
 document.getElementById('allowMultiple').addEventListener('change', function(e) {
     window.formData.questions[currentQuestionIndex].multiple = e.target.checked;
     renderRadioPreview();
+    checkForUnsavedChanges();
 });
 
 // Question operations
@@ -134,6 +158,7 @@ function addQuestion() {
     
     window.formData.questions.push(newQuestion);
     selectQuestion(window.formData.questions.length - 1);
+    checkForUnsavedChanges();
 }
 
 function deleteCurrentQuestion() {
@@ -151,6 +176,7 @@ function deleteCurrentQuestion() {
         }
         
         selectQuestion(currentQuestionIndex);
+        checkForUnsavedChanges();
     }
 }
 
@@ -187,6 +213,7 @@ function addOption(text = '') {
     question.options.push(text || `Option ${question.options.length + 1}`);
     renderOptions(question.options);
     renderRadioPreview();
+    checkForUnsavedChanges();
 }
 
 function removeOption(index) {
@@ -195,6 +222,7 @@ function removeOption(index) {
         question.options.splice(index, 1);
         renderOptions(question.options);
         renderRadioPreview();
+        checkForUnsavedChanges();
     } else {
         alert('A question must have at least one option.');
     }
@@ -221,6 +249,7 @@ function updateOption(index, value) {
     const question = window.formData.questions[currentQuestionIndex];
     question.options[index] = value;
     renderRadioPreview();
+    checkForUnsavedChanges();
 }
 
 function renderRadioPreview() {
@@ -261,6 +290,10 @@ async function saveForm() {
         });
         
         if (response.ok) {
+            // Update saved state and reset unsaved changes flag
+            lastSavedState = JSON.stringify(window.formData.questions);
+            hasUnsavedChanges = false;
+            
             // Show success message
             const saveBtn = document.querySelector('.header-actions .create-form-btn');
             const originalText = saveBtn.textContent;
@@ -271,12 +304,16 @@ async function saveForm() {
                 saveBtn.textContent = originalText;
                 saveBtn.style.background = '';
             }, 2000);
+            
+            return true;
         } else {
             alert('Failed to save form. Please try again.');
+            return false;
         }
     } catch (error) {
         console.error('Error saving form:', error);
         alert('Failed to save form. Please try again.');
+        return false;
     }
 }
 
@@ -335,8 +372,35 @@ async function togglePublish() {
 }
 
 // View submissions
-function viewSubmissions() {
-    window.location.href = `/form/${window.formData.name}/submissions`;
+async function viewSubmissions() {
+    if (hasUnsavedChanges) {
+        if (confirm('You have unsaved changes. Do you want to save before leaving?')) {
+            const saved = await saveForm();
+            if (saved) {
+                window.location.href = `/form/${window.formData.name}/submissions`;
+            }
+        } else {
+            window.location.href = `/form/${window.formData.name}/submissions`;
+        }
+    } else {
+        window.location.href = `/form/${window.formData.name}/submissions`;
+    }
+}
+
+// Go back to forms
+async function goBackToForms() {
+    if (hasUnsavedChanges) {
+        if (confirm('You have unsaved changes. Do you want to save before leaving?')) {
+            const saved = await saveForm();
+            if (saved) {
+                window.location.href = '/my-forms';
+            }
+        } else {
+            window.location.href = '/my-forms';
+        }
+    } else {
+        window.location.href = '/my-forms';
+    }
 }
 
 // Keyboard shortcuts
