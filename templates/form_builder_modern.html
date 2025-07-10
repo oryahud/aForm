@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ form.name }} - Form Builder</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/modern-saas.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/feather-icons/4.29.0/feather.min.css">
+    <style>
+        .form-builder-layout {
+            min-height: calc(100vh - 64px);
+            display: flex;
+            background: var(--gray-50);
+        }
+        
+        .form-builder-sidebar {
+            width: 320px;
+            background: white;
+            border-right: 1px solid var(--gray-200);
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .form-builder-main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .form-builder-header {
+            background: white;
+            border-bottom: 1px solid var(--gray-200);
+            padding: var(--spacing-4) var(--spacing-6);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .form-builder-title {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-3);
+        }
+        
+        .form-builder-title h1 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin: 0;
+            color: var(--gray-900);
+        }
+        
+        .form-builder-actions {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-3);
+        }
+        
+        .questions-panel {
+            padding: var(--spacing-6);
+            border-bottom: 1px solid var(--gray-200);
+        }
+        
+        .questions-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: var(--spacing-4);
+        }
+        
+        .questions-header h2 {
+            font-size: 1.125rem;
+            font-weight: 600;
+            margin: 0;
+            color: var(--gray-900);
+        }
+        
+        .questions-list {
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-2);
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .question-item {
+            padding: var(--spacing-3);
+            border: 1px solid var(--gray-200);
+            border-radius: var(--radius-md);
+            background: var(--gray-50);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .question-item:hover {
+            background: var(--gray-100);
+            border-color: var(--gray-300);
+        }
+        
+        .question-item.active {
+            background: var(--primary-50);
+            border-color: var(--primary-300);
+        }
+        
+        .question-item-title {
+            font-weight: 500;
+            color: var(--gray-900);
+            margin-bottom: var(--spacing-1);
+        }
+        
+        .question-item-info {
+            font-size: 0.75rem;
+            color: var(--gray-500);
+        }
+        
+        .editor-panel {
+            flex: 1;
+            padding: var(--spacing-6);
+            overflow-y: auto;
+        }
+        
+        .editor-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: var(--spacing-6);
+            padding-bottom: var(--spacing-4);
+            border-bottom: 1px solid var(--gray-200);
+        }
+        
+        .editor-content {
+            flex: 1;
+            background: white;
+            border-radius: var(--radius-xl);
+            box-shadow: var(--shadow-sm);
+            padding: var(--spacing-8);
+            margin: var(--spacing-6);
+        }
+        
+        .form-group {
+            margin-bottom: var(--spacing-6);
+        }
+        
+        .form-label {
+            display: block;
+            font-weight: 500;
+            color: var(--gray-700);
+            margin-bottom: var(--spacing-2);
+        }
+        
+        .form-input {
+            width: 100%;
+            padding: var(--spacing-3);
+            border: 1px solid var(--gray-300);
+            border-radius: var(--radius-md);
+            font-size: 1rem;
+            transition: border-color 0.2s;
+        }
+        
+        .form-input:focus {
+            outline: none;
+            border-color: var(--primary-500);
+            box-shadow: 0 0 0 3px var(--primary-100);
+        }
+        
+        .form-select {
+            width: 100%;
+            padding: var(--spacing-3);
+            border: 1px solid var(--gray-300);
+            border-radius: var(--radius-md);
+            font-size: 1rem;
+            background: white;
+        }
+        
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-2);
+        }
+        
+        .options-section {
+            background: var(--gray-50);
+            border-radius: var(--radius-lg);
+            padding: var(--spacing-6);
+            margin-top: var(--spacing-4);
+        }
+        
+        .options-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: var(--spacing-4);
+        }
+        
+        .option-item {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-3);
+            margin-bottom: var(--spacing-3);
+        }
+        
+        .option-input {
+            flex: 1;
+        }
+        
+        .preview-section {
+            margin-top: var(--spacing-6);
+            padding: var(--spacing-6);
+            background: var(--gray-50);
+            border-radius: var(--radius-lg);
+        }
+        
+        .preview-header {
+            font-weight: 500;
+            color: var(--gray-700);
+            margin-bottom: var(--spacing-3);
+        }
+        
+        .radio-preview-item {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-2);
+            margin-bottom: var(--spacing-2);
+        }
+        
+        .empty-state-editor {
+            text-align: center;
+            padding: var(--spacing-16);
+            color: var(--gray-500);
+        }
+        
+        .empty-state-editor h3 {
+            font-size: 1.25rem;
+            margin-bottom: var(--spacing-2);
+        }
+        
+        .mobile-hide {
+            display: block;
+        }
+        
+        @media (max-width: 768px) {
+            .form-builder-layout {
+                flex-direction: column;
+            }
+            
+            .form-builder-sidebar {
+                width: 100%;
+                max-height: 40vh;
+            }
+            
+            .mobile-hide {
+                display: none;
+            }
+            
+            .form-builder-actions {
+                flex-wrap: wrap;
+                gap: var(--spacing-2);
+            }
+            
+            .editor-content {
+                margin: var(--spacing-4);
+                padding: var(--spacing-4);
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Modern SaaS Header -->
+    <header class="saas-header">
+        <nav class="saas-nav">
+            <a href="/" class="saas-logo">
+                <div class="saas-logo-icon">A</div>
+                <span class="saas-logo-text">aForm</span>
+            </a>
+            
+            <div class="saas-nav-actions">
+                <button class="btn btn-ghost" onclick="goBackToForms()">
+                    <i data-feather="arrow-left"></i>
+                    <span class="mobile-hide">Back to Dashboard</span>
+                </button>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Form Builder Layout -->
+    <div class="form-builder-layout">
+        <!-- Sidebar -->
+        <aside class="form-builder-sidebar">
+            <!-- Questions Panel -->
+            <div class="questions-panel">
+                <div class="questions-header">
+                    <h2>Questions</h2>
+                    <button class="btn btn-primary btn-sm" onclick="addQuestion()">
+                        <i data-feather="plus"></i>
+                        Add
+                    </button>
+                </div>
+                <div class="questions-list" id="questionsList">
+                    <!-- Questions will be rendered here -->
+                </div>
+            </div>
+            
+            <!-- Form Settings -->
+            <div class="editor-panel">
+                <div class="editor-header">
+                    <h3 style="margin: 0; font-size: 1rem; font-weight: 600;">Form Settings</h3>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Form Name</label>
+                    <input type="text" value="{{ form.name }}" readonly class="form-input" style="background: var(--gray-100);">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Status</label>
+                    <div style="display: flex; align-items: center; gap: var(--spacing-3);">
+                        <span class="status-badge status-{{ form.status }}">{{ form.status|title }}</span>
+                        <button class="btn btn-secondary btn-sm" id="publishBtn" onclick="togglePublish()">
+                            <i data-feather="{{ 'eye-off' if form.status == 'published' else 'eye' }}"></i>
+                            <span id="publishBtnText">{{ 'Hide' if form.status == 'published' else 'Publish' }}</span>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <button class="btn btn-ghost" onclick="viewSubmissions()" style="width: 100%;">
+                        <i data-feather="bar-chart-2"></i>
+                        View Responses
+                    </button>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Editor -->
+        <main class="form-builder-main">
+            <!-- Builder Header -->
+            <div class="form-builder-header">
+                <div class="form-builder-title">
+                    <h1>{{ form.name }}</h1>
+                    <span style="font-size: 0.875rem; color: var(--gray-500); background: var(--gray-100); padding: var(--spacing-1) var(--spacing-3); border-radius: var(--radius-sm);">
+                        Form Builder
+                    </span>
+                </div>
+                
+                <div class="form-builder-actions">
+                    <button class="btn btn-secondary" onclick="saveForm()">
+                        <i data-feather="save"></i>
+                        Save
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Editor Content -->
+            <div class="editor-content">
+                <div id="questionEditor">
+                    <div class="empty-state-editor" id="emptyEditor">
+                        <div style="font-size: 3rem; margin-bottom: var(--spacing-4);">📝</div>
+                        <h3>Select a question to edit</h3>
+                        <p>Choose a question from the sidebar or create a new one to get started.</p>
+                    </div>
+                    
+                    <div id="editorForm" style="display: none;">
+                        <div class="form-group">
+                            <label class="form-label">Question Title</label>
+                            <input type="text" id="questionTitle" placeholder="Enter your question..." class="form-input">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Answer Type</label>
+                            <select id="answerType" class="form-select" onchange="toggleAnswerOptions()">
+                                <option value="text">Text Input</option>
+                                <option value="radio">Multiple Choice</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <div class="checkbox-group">
+                                <input type="checkbox" id="questionRequired">
+                                <label for="questionRequired" class="form-label" style="margin: 0;">Required question</label>
+                            </div>
+                        </div>
+                        
+                        <!-- Text Input Options -->
+                        <div id="textInputGroup" class="form-group" style="display: none;">
+                            <label class="form-label">Placeholder Text</label>
+                            <input type="text" id="placeholderText" placeholder="Enter placeholder text..." class="form-input">
+                        </div>
+                        
+                        <!-- Radio Button Options -->
+                        <div id="optionsGroup" class="options-section" style="display: none;">
+                            <div class="options-header">
+                                <h4 style="margin: 0; font-size: 1rem; font-weight: 500;">Answer Options</h4>
+                                <button class="btn btn-secondary btn-sm" onclick="addOption()">
+                                    <i data-feather="plus"></i>
+                                    Add Option
+                                </button>
+                            </div>
+                            
+                            <div class="form-group">
+                                <div class="checkbox-group">
+                                    <input type="checkbox" id="allowMultiple">
+                                    <label for="allowMultiple" class="form-label" style="margin: 0;">Allow multiple selections</label>
+                                </div>
+                            </div>
+                            
+                            <div id="optionsList">
+                                <!-- Options will be rendered here -->
+                            </div>
+                            
+                            <div class="preview-section">
+                                <div class="preview-header">Preview</div>
+                                <div id="radioOptionsPreview">
+                                    <!-- Preview will be rendered here -->
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div style="display: flex; gap: var(--spacing-3); margin-top: var(--spacing-8); padding-top: var(--spacing-6); border-top: 1px solid var(--gray-200);">
+                            <button class="btn btn-ghost" onclick="deleteCurrentQuestion()" style="color: var(--error-500);">
+                                <i data-feather="trash-2"></i>
+                                Delete Question
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Feather Icons -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/feather-icons/4.29.0/feather.min.js"></script>
+    <script>
+        // Initialize form data and feather icons
+        window.formData = {{ form | tojson }};
+        window.currentQuestionIndex = 0;
+        feather.replace();
+        
+        // Show/hide editor sections
+        function showEditor() {
+            document.getElementById('emptyEditor').style.display = 'none';
+            document.getElementById('editorForm').style.display = 'block';
+        }
+        
+        function hideEditor() {
+            document.getElementById('emptyEditor').style.display = 'block';
+            document.getElementById('editorForm').style.display = 'none';
+        }
+    </script>
+    <script src="{{ url_for('static', filename='js/form_builder.js') }}"></script>
+    <script>
+        // Override some functions for modern UI
+        function renderQuestions() {
+            const questionsList = document.getElementById('questionsList');
+            questionsList.innerHTML = '';
+            
+            if (window.formData.questions.length === 0) {
+                questionsList.innerHTML = `
+                    <div style="text-align: center; padding: var(--spacing-6); color: var(--gray-500);">
+                        <div style="font-size: 2rem; margin-bottom: var(--spacing-2);">❓</div>
+                        <p style="margin: 0; font-size: 0.875rem;">No questions yet</p>
+                    </div>
+                `;
+                hideEditor();
+                return;
+            }
+            
+            window.formData.questions.forEach((question, index) => {
+                const questionItem = document.createElement('div');
+                questionItem.className = `question-item ${index === currentQuestionIndex ? 'active' : ''}`;
+                questionItem.onclick = () => selectQuestion(index);
+                
+                const typeText = question.type === 'text' ? 'Text Input' : 'Multiple Choice';
+                const optionsText = question.options ? ` • ${question.options.length} options` : '';
+                const multipleText = question.multiple ? ' • Multiple' : '';
+                
+                questionItem.innerHTML = `
+                    <div class="question-item-title">${question.title || `Question ${index + 1}`}</div>
+                    <div class="question-item-info">${typeText}${optionsText}${multipleText}</div>
+                `;
+                
+                questionsList.appendChild(questionItem);
+            });
+            
+            if (window.formData.questions.length > 0) {
+                showEditor();
+            }
+        }
+        
+        // Re-render questions on load
+        document.addEventListener('DOMContentLoaded', function() {
+            renderQuestions();
+            if (window.formData.questions.length > 0) {
+                selectQuestion(0);
+            }
+        });
+    </script>
+</body>
+</html>

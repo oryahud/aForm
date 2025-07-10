@@ -19,7 +19,7 @@ def save_forms(forms):
 @app.route('/')
 def index():
     forms = load_forms()
-    return render_template('my_forms.html', forms=forms)
+    return render_template('my_forms_modern.html', forms=forms)
 
 @app.route('/create-form', methods=['POST'])
 def create_form():
@@ -66,7 +66,7 @@ def edit_form(form_name):
     if not form:
         return redirect(url_for('index'))
     
-    return render_template('form_builder.html', form=form)
+    return render_template('form_builder_modern.html', form=form)
 
 @app.route('/api/form/<form_name>/save', methods=['POST'])
 def save_form_data(form_name):
@@ -144,7 +144,7 @@ def public_form(form_name):
     if not form or form.get('status') != 'published':
         return render_template('error.html', message='Form not found or not published'), 404
     
-    return render_template('public_form.html', form=form)
+    return render_template('public_form_modern.html', form=form)
 
 @app.route('/api/form/<form_name>/submit', methods=['POST'])
 def submit_form(form_name):

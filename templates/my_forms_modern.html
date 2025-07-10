@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - aForm</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/modern-saas.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/feather-icons/4.29.0/feather.min.css">
+</head>
+<body>
+    <!-- Modern SaaS Header -->
+    <header class="saas-header">
+        <nav class="saas-nav">
+            <a href="/" class="saas-logo">
+                <div class="saas-logo-icon">A</div>
+                <span class="saas-logo-text">aForm</span>
+            </a>
+            
+            <ul class="saas-nav-links">
+                <li><a href="/" class="saas-nav-link active">Dashboard</a></li>
+                <li><a href="#" class="saas-nav-link">Templates</a></li>
+                <li><a href="#" class="saas-nav-link">Analytics</a></li>
+                <li><a href="#" class="saas-nav-link">Settings</a></li>
+            </ul>
+            
+            <div class="saas-nav-actions">
+                <button class="btn btn-ghost">
+                    <i data-feather="bell"></i>
+                </button>
+                <button class="btn btn-ghost">
+                    <i data-feather="user"></i>
+                </button>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Main Layout -->
+    <div class="saas-layout">
+        <!-- Sidebar -->
+        <aside class="saas-sidebar">
+            <div class="page-header">
+                <h2 class="page-title" style="font-size: 1.25rem; margin-bottom: var(--spacing-4);">Quick Actions</h2>
+                <button class="btn btn-primary btn-lg" onclick="openCreateFormModal()" style="width: 100%;">
+                    <i data-feather="plus"></i>
+                    Create New Form
+                </button>
+            </div>
+            
+            <div style="margin-top: var(--spacing-8);">
+                <h3 style="font-size: 0.875rem; font-weight: 600; color: var(--gray-500); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: var(--spacing-4);">Statistics</h3>
+                <div style="display: flex; flex-direction: column; gap: var(--spacing-4);">
+                    <div class="card" style="padding: var(--spacing-4);">
+                        <div style="display: flex; align-items: center; gap: var(--spacing-3);">
+                            <div style="padding: var(--spacing-2); background: var(--primary-100); border-radius: var(--radius-md); color: var(--primary-600);">
+                                <i data-feather="file-text"></i>
+                            </div>
+                            <div>
+                                <div style="font-size: 1.25rem; font-weight: 700; color: var(--gray-900);">{{ forms|length }}</div>
+                                <div style="font-size: 0.75rem; color: var(--gray-500);">Total Forms</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card" style="padding: var(--spacing-4);">
+                        <div style="display: flex; align-items: center; gap: var(--spacing-3);">
+                            <div style="padding: var(--spacing-2); background: var(--success-100); border-radius: var(--radius-md); color: var(--success-600);">
+                                <i data-feather="check-circle"></i>
+                            </div>
+                            <div>
+                                <div style="font-size: 1.25rem; font-weight: 700; color: var(--gray-900);">
+                                    {% set published_count = 0 %}
+                                    {% for form in forms %}
+                                        {% if form.status == 'published' %}
+                                            {% set published_count = published_count + 1 %}
+                                        {% endif %}
+                                    {% endfor %}
+                                    {{ published_count }}
+                                </div>
+                                <div style="font-size: 0.75rem; color: var(--gray-500);">Published</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card" style="padding: var(--spacing-4);">
+                        <div style="display: flex; align-items: center; gap: var(--spacing-3);">
+                            <div style="padding: var(--spacing-2); background: var(--warning-100); border-radius: var(--radius-md); color: var(--warning-600);">
+                                <i data-feather="inbox"></i>
+                            </div>
+                            <div>
+                                {% set total_submissions = 0 %}
+                                {% for form in forms %}
+                                    {% if form.submissions %}
+                                        {% set total_submissions = total_submissions + form.submissions|length %}
+                                    {% endif %}
+                                {% endfor %}
+                                <div style="font-size: 1.25rem; font-weight: 700; color: var(--gray-900);">{{ total_submissions }}</div>
+                                <div style="font-size: 0.75rem; color: var(--gray-500);">Responses</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="saas-main">
+            <div class="saas-container">
+                <div class="page-header">
+                    <h1 class="page-title">My Forms</h1>
+                    <p class="page-subtitle">Create, manage, and analyze your forms</p>
+                </div>
+                
+                {% if forms %}
+                    <div class="forms-grid">
+                        {% for form in forms %}
+                        <div class="form-card">
+                            <div class="form-card-header">
+                                <div class="form-card-meta">
+                                    <span class="form-card-date">{{ form.created_at[:10] }}</span>
+                                    <span class="status-badge status-{{ form.status }}">{{ form.status|title }}</span>
+                                </div>
+                                <h3 class="form-card-title">{{ form.name }}</h3>
+                            </div>
+                            
+                            <div class="form-card-content">
+                                <p class="form-card-description">Last updated {{ form.updated_at[:10] }}</p>
+                                
+                                <div class="form-card-stats">
+                                    <div class="form-stat">
+                                        <div class="form-stat-number">{{ form.questions|length if form.questions else 0 }}</div>
+                                        <div class="form-stat-label">Questions</div>
+                                    </div>
+                                    <div class="form-stat">
+                                        <div class="form-stat-number">{{ form.submissions|length if form.submissions else 0 }}</div>
+                                        <div class="form-stat-label">Responses</div>
+                                    </div>
+                                </div>
+                                
+                                {% if form.status == 'published' %}
+                                <div class="share-link-container">
+                                    <div class="share-link-label">Share Link</div>
+                                    <div class="share-link-input-group">
+                                        <input type="text" value="{{ request.url_root }}submit/{{ form.name }}" readonly class="share-link-input">
+                                        <button class="btn btn-secondary btn-sm" onclick="copyFormLink(this)">
+                                            <i data-feather="copy"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                {% endif %}
+                                
+                                <div class="form-card-actions">
+                                    <button class="btn btn-primary" onclick="window.location.href='/form/{{ form.name }}'">
+                                        <i data-feather="edit-3"></i>
+                                        Edit
+                                    </button>
+                                    {% if form.submissions and form.submissions|length > 0 %}
+                                    <button class="btn btn-secondary" onclick="window.location.href='/form/{{ form.name }}/submissions'">
+                                        <i data-feather="bar-chart-2"></i>
+                                        Responses
+                                    </button>
+                                    {% endif %}
+                                    <button class="btn btn-ghost" onclick="confirmDeleteForm('{{ form.name }}')" style="color: var(--error-500);">
+                                        <i data-feather="trash-2"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📝</div>
+                        <h2 class="empty-state-title">No forms yet</h2>
+                        <p class="empty-state-description">Create your first form to start collecting responses from your audience.</p>
+                        <button class="btn btn-primary btn-lg" onclick="openCreateFormModal()">
+                            <i data-feather="plus"></i>
+                            Create Your First Form
+                        </button>
+                    </div>
+                {% endif %}
+            </div>
+        </main>
+    </div>
+
+    <!-- Create Form Modal -->
+    <div id="createFormModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Create New Form</h2>
+                <button class="btn btn-ghost" onclick="closeCreateFormModal()">
+                    <i data-feather="x"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div style="margin-bottom: var(--spacing-4);">
+                    <label style="display: block; font-weight: 500; margin-bottom: var(--spacing-2);">Form Name</label>
+                    <input type="text" id="formNameInput" placeholder="Enter form name..." style="width: 100%; padding: var(--spacing-3); border: 1px solid var(--gray-300); border-radius: var(--radius-md);">
+                </div>
+                <div style="display: flex; gap: var(--spacing-3); justify-content: flex-end;">
+                    <button class="btn btn-secondary" onclick="closeCreateFormModal()">Cancel</button>
+                    <button class="btn btn-primary" onclick="createNewForm()">
+                        <i data-feather="plus"></i>
+                        Create Form
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div id="deleteFormModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 style="color: var(--error-500);">Delete Form</h2>
+                <button class="btn btn-ghost" onclick="closeDeleteModal()">
+                    <i data-feather="x"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete "<span id="deleteFormName"></span>"?</p>
+                <p style="color: var(--error-500);"><strong>This action cannot be undone.</strong> All form data and submissions will be permanently deleted.</p>
+                
+                <div style="display: flex; gap: var(--spacing-3); justify-content: flex-end; margin-top: var(--spacing-6);">
+                    <button class="btn btn-secondary" onclick="closeDeleteModal()">Cancel</button>
+                    <button class="btn" onclick="deleteForm()" style="background: var(--error-500); color: white;">
+                        <i data-feather="trash-2"></i>
+                        Delete Form
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Styles -->
+    <style>
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        
+        .modal-content {
+            background: white;
+            border-radius: var(--radius-xl);
+            max-width: 500px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        
+        .modal-header {
+            padding: var(--spacing-6);
+            border-bottom: 1px solid var(--gray-200);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .modal-header h2 {
+            margin: 0;
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+        
+        .modal-body {
+            padding: var(--spacing-6);
+        }
+        
+        .success-100 { background: #dcfce7; }
+        .success-600 { color: #16a34a; }
+        .warning-100 { background: #fef3c7; }
+        .warning-600 { color: #d97706; }
+        .primary-100 { background: #dbeafe; }
+        .primary-600 { color: #2563eb; }
+    </style>
+
+    <!-- Feather Icons -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/feather-icons/4.29.0/feather.min.js"></script>
+    <script>
+        // Initialize Feather icons
+        feather.replace();
+        
+        // Modal functions
+        function openCreateFormModal() {
+            document.getElementById('createFormModal').style.display = 'flex';
+            document.getElementById('formNameInput').focus();
+        }
+        
+        function closeCreateFormModal() {
+            document.getElementById('createFormModal').style.display = 'none';
+            document.getElementById('formNameInput').value = '';
+        }
+        
+        function createNewForm() {
+            const formName = document.getElementById('formNameInput').value.trim();
+            if (!formName) {
+                alert('Please enter a form name');
+                return;
+            }
+            
+            fetch('/create-form', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ name: formName })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.redirect) {
+                    window.location.href = data.redirect;
+                } else {
+                    alert(data.error || 'Failed to create form');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Failed to create form');
+            });
+        }
+        
+        // Copy form link function
+        function copyFormLink(button) {
+            const input = button.parentElement.querySelector('.share-link-input');
+            input.select();
+            document.execCommand('copy');
+            
+            const originalHTML = button.innerHTML;
+            button.innerHTML = '<i data-feather="check"></i>';
+            feather.replace();
+            
+            setTimeout(() => {
+                button.innerHTML = originalHTML;
+                feather.replace();
+            }, 2000);
+        }
+        
+        // Delete form functions
+        let formToDelete = '';
+        
+        function confirmDeleteForm(formName) {
+            formToDelete = formName;
+            document.getElementById('deleteFormName').textContent = formName;
+            document.getElementById('deleteFormModal').style.display = 'flex';
+        }
+        
+        function closeDeleteModal() {
+            document.getElementById('deleteFormModal').style.display = 'none';
+            formToDelete = '';
+        }
+        
+        function deleteForm() {
+            if (!formToDelete) return;
+            
+            fetch(`/api/form/${formToDelete}/delete`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.message) {
+                    window.location.reload();
+                } else {
+                    alert(data.error || 'Failed to delete form');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Failed to delete form');
+            });
+        }
+        
+        // Close modals when clicking outside
+        window.addEventListener('click', function(e) {
+            const createModal = document.getElementById('createFormModal');
+            const deleteModal = document.getElementById('deleteFormModal');
+            
+            if (e.target === createModal) {
+                closeCreateFormModal();
+            }
+            if (e.target === deleteModal) {
+                closeDeleteModal();
+            }
+        });
+        
+        // Enter key support for create form
+        document.getElementById('formNameInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                createNewForm();
+            }
+        });
+    </script>
+</body>
+</html>

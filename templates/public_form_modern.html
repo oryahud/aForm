@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ form.name }} - aForm</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/modern-saas.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/feather-icons/4.29.0/feather.min.css">
+    <style>
+        .public-form-container {
+            min-height: 100vh;
+            background: linear-gradient(135deg, var(--primary-50) 0%, var(--gray-50) 100%);
+            padding: var(--spacing-8);
+        }
+        
+        .public-form-wrapper {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .form-header {
+            text-align: center;
+            margin-bottom: var(--spacing-10);
+            background: white;
+            padding: var(--spacing-10);
+            border-radius: var(--radius-xl);
+            box-shadow: var(--shadow-lg);
+        }
+        
+        .form-logo {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--spacing-3);
+            margin-bottom: var(--spacing-6);
+            text-decoration: none;
+            color: var(--gray-900);
+        }
+        
+        .form-logo-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--primary-500), var(--primary-600));
+            border-radius: var(--radius-lg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+            font-size: 1.25rem;
+        }
+        
+        .form-logo-text {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--gray-600);
+        }
+        
+        .form-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--gray-900);
+            margin: 0 0 var(--spacing-4) 0;
+            background: linear-gradient(135deg, var(--primary-600), var(--primary-700));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .form-description {
+            font-size: 1.25rem;
+            color: var(--gray-600);
+            margin: 0;
+            line-height: 1.6;
+        }
+        
+        .public-form {
+            background: white;
+            border-radius: var(--radius-xl);
+            padding: var(--spacing-10);
+            box-shadow: var(--shadow-xl);
+            border: 1px solid var(--gray-200);
+        }
+        
+        .question-block {
+            margin-bottom: var(--spacing-10);
+            padding-bottom: var(--spacing-8);
+            border-bottom: 1px solid var(--gray-100);
+        }
+        
+        .question-block:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+        
+        .question-header {
+            margin-bottom: var(--spacing-6);
+        }
+        
+        .question-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--gray-900);
+            margin: 0;
+            line-height: 1.4;
+        }
+        
+        .required-mark {
+            color: var(--error-500);
+            margin-left: var(--spacing-1);
+        }
+        
+        .question-answer {
+            margin-top: var(--spacing-4);
+        }
+        
+        .text-input {
+            width: 100%;
+            padding: var(--spacing-4);
+            border: 2px solid var(--gray-200);
+            border-radius: var(--radius-lg);
+            font-size: 1.125rem;
+            font-family: inherit;
+            transition: all 0.3s ease;
+            background: var(--gray-50);
+        }
+        
+        .text-input:focus {
+            outline: none;
+            border-color: var(--primary-500);
+            background: white;
+            box-shadow: 0 0 0 4px var(--primary-100);
+        }
+        
+        .radio-group {
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-3);
+        }
+        
+        .radio-option {
+            display: flex;
+            align-items: center;
+            padding: var(--spacing-4);
+            background: var(--gray-50);
+            border: 2px solid var(--gray-200);
+            border-radius: var(--radius-lg);
+            transition: all 0.2s ease;
+            cursor: pointer;
+            position: relative;
+        }
+        
+        .radio-option:hover {
+            background: var(--gray-100);
+            border-color: var(--gray-300);
+        }
+        
+        .radio-option:has(input:checked) {
+            background: var(--primary-50);
+            border-color: var(--primary-500);
+        }
+        
+        .radio-option input {
+            margin-right: var(--spacing-3);
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+        
+        .radio-option label {
+            font-size: 1.125rem;
+            color: var(--gray-900);
+            cursor: pointer;
+            flex: 1;
+            line-height: 1.5;
+        }
+        
+        .form-actions {
+            text-align: center;
+            margin-top: var(--spacing-12);
+            padding-top: var(--spacing-8);
+            border-top: 1px solid var(--gray-200);
+        }
+        
+        .submit-btn {
+            background: linear-gradient(135deg, var(--primary-600), var(--primary-700));
+            color: white;
+            border: none;
+            padding: var(--spacing-4) var(--spacing-10);
+            font-size: 1.25rem;
+            font-weight: 600;
+            border-radius: var(--radius-xl);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: var(--shadow-lg);
+            min-width: 200px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--spacing-2);
+        }
+        
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-xl);
+        }
+        
+        .submit-btn:active {
+            transform: translateY(0);
+        }
+        
+        .submit-btn:disabled {
+            background: var(--gray-400);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: var(--shadow-sm);
+        }
+        
+        .success-message {
+            text-align: center;
+            background: white;
+            padding: var(--spacing-16);
+            border-radius: var(--radius-xl);
+            box-shadow: var(--shadow-xl);
+            border: 1px solid var(--gray-200);
+        }
+        
+        .success-icon {
+            font-size: 5rem;
+            margin-bottom: var(--spacing-6);
+        }
+        
+        .success-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--gray-900);
+            margin: 0 0 var(--spacing-4) 0;
+        }
+        
+        .success-description {
+            font-size: 1.25rem;
+            color: var(--gray-600);
+            margin: 0 0 var(--spacing-6) 0;
+            line-height: 1.6;
+        }
+        
+        .confirmation-details {
+            background: var(--success-50);
+            border: 1px solid var(--success-200);
+            border-radius: var(--radius-lg);
+            padding: var(--spacing-6);
+            margin-top: var(--spacing-6);
+        }
+        
+        .confirmation-details p {
+            font-size: 1.125rem;
+            color: var(--gray-700);
+            margin: 0 0 var(--spacing-3) 0;
+        }
+        
+        .confirmation-details p:last-child {
+            margin-bottom: 0;
+        }
+        
+        .confirmation-details strong {
+            color: var(--success-700);
+        }
+        
+        .powered-by {
+            text-align: center;
+            margin-top: var(--spacing-8);
+            padding-top: var(--spacing-6);
+            border-top: 1px solid var(--gray-200);
+            color: var(--gray-500);
+            font-size: 0.875rem;
+        }
+        
+        .powered-by a {
+            color: var(--primary-600);
+            text-decoration: none;
+            font-weight: 500;
+        }
+        
+        .powered-by a:hover {
+            text-decoration: underline;
+        }
+        
+        @media (max-width: 768px) {
+            .public-form-container {
+                padding: var(--spacing-4);
+            }
+            
+            .form-header,
+            .public-form {
+                padding: var(--spacing-6);
+            }
+            
+            .form-title {
+                font-size: 2rem;
+            }
+            
+            .question-title {
+                font-size: 1.25rem;
+            }
+            
+            .text-input {
+                padding: var(--spacing-3);
+                font-size: 1rem;
+            }
+            
+            .radio-option {
+                padding: var(--spacing-3);
+            }
+            
+            .radio-option label {
+                font-size: 1rem;
+            }
+            
+            .submit-btn {
+                padding: var(--spacing-3) var(--spacing-8);
+                font-size: 1.125rem;
+                min-width: 180px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="public-form-container">
+        <div class="public-form-wrapper">
+            <!-- Form Header -->
+            <div class="form-header">
+                <a href="/" class="form-logo">
+                    <div class="form-logo-icon">A</div>
+                    <span class="form-logo-text">aForm</span>
+                </a>
+                <h1 class="form-title">{{ form.name }}</h1>
+                <p class="form-description">Please fill out this form with accurate information</p>
+            </div>
+
+            <!-- Form Content -->
+            <form id="publicForm" class="public-form">
+                {% for question in form.questions %}
+                <div class="question-block" data-question-id="{{ question.id }}">
+                    <div class="question-header">
+                        <h3 class="question-title">
+                            {{ question.title }}
+                            {% if question.required %}
+                            <span class="required-mark">*</span>
+                            {% endif %}
+                        </h3>
+                    </div>
+                    
+                    <div class="question-answer">
+                        {% if question.type == 'text' %}
+                            <input 
+                                type="text" 
+                                name="{{ question.id }}" 
+                                id="{{ question.id }}"
+                                placeholder="{{ question.placeholder or 'Enter your answer...' }}"
+                                class="text-input"
+                                {% if question.required %}required{% endif %}
+                            >
+                        {% elif question.type == 'radio' %}
+                            <div class="radio-group">
+                                {% for option in question.options %}
+                                <div class="radio-option">
+                                    <input 
+                                        type="{{ 'checkbox' if question.multiple else 'radio' }}" 
+                                        name="{{ question.id }}{{ '[]' if question.multiple else '' }}" 
+                                        id="{{ question.id }}_{{ loop.index0 }}"
+                                        value="{{ option }}"
+                                        {% if question.required and not question.multiple %}required{% endif %}
+                                    >
+                                    <label for="{{ question.id }}_{{ loop.index0 }}">{{ option }}</label>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+
+                <div class="form-actions">
+                    <button type="submit" class="submit-btn">
+                        <i data-feather="send"></i>
+                        Submit Form
+                    </button>
+                </div>
+                
+                <div class="powered-by">
+                    <p>Powered by <a href="/">aForm</a></p>
+                </div>
+            </form>
+
+            <!-- Success Message -->
+            <div id="successMessage" class="success-message" style="display: none;">
+                <div class="success-icon">✅</div>
+                <h2 class="success-title">Form Submitted Successfully!</h2>
+                <p class="success-description">Thank you for your submission. We have received your response and it has been recorded.</p>
+                <div class="confirmation-details">
+                    <p><strong>What happens next?</strong></p>
+                    <p>Your response has been saved and will be reviewed by the form creator.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Feather Icons -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/feather-icons/4.29.0/feather.min.js"></script>
+    <script>
+        window.formData = {{ form | tojson }};
+        feather.replace();
+    </script>
+    <script src="{{ url_for('static', filename='js/public_form.js') }}"></script>
+</body>
+</html>
