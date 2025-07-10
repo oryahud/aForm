@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Forms - aForm</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>My Forms</h1>
+        <p class="subtitle">Manage your forms</p>
+        
+        {% if forms %}
+            <div class="forms-grid">
+                {% for form in forms %}
+                <div class="form-card">
+                    <div class="form-card-header">
+                        <h3>{{ form.name }}</h3>
+                        <span class="form-date">{{ form.created_at[:10] }}</span>
+                    </div>
+                    <p class="form-description">Last updated: {{ form.updated_at[:10] }}</p>
+                    <div class="form-actions">
+                        <button class="create-form-btn" onclick="window.location.href='/form/{{ form.name }}'">
+                            Edit Form
+                        </button>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="empty-state">
+                <div class="empty-icon">📝</div>
+                <h2>No forms yet</h2>
+                <p>Create your first form to get started!</p>
+            </div>
+        {% endif %}
+        
+        <div class="button-group">
+            <button class="secondary-btn" onclick="window.location.href='/'">
+                ← Back to Home
+            </button>
+            <button class="create-form-btn" onclick="window.location.href='/'">
+                Create New Form
+            </button>
+        </div>
+    </div>
+</body>
+</html>

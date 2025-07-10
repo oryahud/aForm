@@ -11,11 +11,33 @@
         <h1>aForm</h1>
         <p class="subtitle">Create beautiful forms with ease</p>
         
-        <button class="create-form-btn" onclick="createForm()">
-            Create a New Form
-        </button>
+        <div class="button-group">
+            <button class="create-form-btn" onclick="openCreateFormModal()">
+                Create a New Form
+            </button>
+            
+            {% if has_forms %}
+            <button class="secondary-btn" onclick="window.location.href='/my-forms'">
+                View My Forms
+            </button>
+            {% endif %}
+        </div>
         
         <div id="message" class="message"></div>
+    </div>
+
+    <!-- Modal for creating new form -->
+    <div id="createFormModal" class="modal">
+        <div class="modal-content">
+            <h2>Create New Form</h2>
+            <p>Enter a unique name for your form:</p>
+            <input type="text" id="formNameInput" placeholder="Enter form name..." maxlength="50">
+            <div class="modal-buttons">
+                <button class="secondary-btn" onclick="closeCreateFormModal()">Cancel</button>
+                <button class="create-form-btn" onclick="submitFormCreation()">Create Form</button>
+            </div>
+            <div id="modalMessage" class="message"></div>
+        </div>
     </div>
 
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>

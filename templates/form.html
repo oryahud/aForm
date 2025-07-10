@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ form.name }} - aForm</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>{{ form.name }}</h1>
+        <p class="subtitle">Form Builder (Coming Soon)</p>
+        
+        <div class="form-placeholder">
+            <div class="placeholder-icon">📝</div>
+            <h2>Form Builder</h2>
+            <p>This is where you'll build your form. The form builder interface will be added in the next update.</p>
+            
+            <div class="form-info">
+                <p><strong>Created:</strong> {{ form.created_at[:10] }}</p>
+                <p><strong>Last Updated:</strong> {{ form.updated_at[:10] }}</p>
+            </div>
+        </div>
+        
+        <div class="button-group">
+            <button class="secondary-btn" onclick="window.location.href='/my-forms'">
+                ← Return to My Forms
+            </button>
+            <button class="create-form-btn" onclick="alert('Form builder coming soon!')">
+                Start Building
+            </button>
+        </div>
+    </div>
+</body>
+</html>
