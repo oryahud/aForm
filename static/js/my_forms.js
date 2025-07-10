@@ -59,6 +59,24 @@ window.addEventListener('click', function(e) {
     }
 });
 
+function copyFormLink(button) {
+    const input = button.parentElement.querySelector('.share-link-input');
+    
+    // Select and copy text
+    input.select();
+    document.execCommand('copy');
+    
+    // Show feedback
+    const originalText = button.textContent;
+    button.textContent = 'Copied!';
+    button.style.background = '#34c759';
+    
+    setTimeout(() => {
+        button.textContent = originalText;
+        button.style.background = '';
+    }, 2000);
+}
+
 // Keyboard shortcuts
 document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') {

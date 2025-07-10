@@ -274,55 +274,11 @@
     margin: 0;
 }
 
-.approval-actions {
-    display: flex;
-    gap: 12px;
-    justify-content: center;
+.submission-status-info {
+    text-align: center;
     margin-top: 20px;
     padding-top: 20px;
     border-top: 1px solid #e5e5ea;
-}
-
-.approve-btn {
-    background: #34c759;
-    color: white;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 8px;
-    font-size: 0.95em;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s ease;
-}
-
-.approve-btn:hover {
-    background: #28a745;
-}
-
-.approve-btn:disabled {
-    background: #86868b;
-    cursor: not-allowed;
-}
-
-.reject-btn {
-    background: #ff3b30;
-    color: white;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 8px;
-    font-size: 0.95em;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s ease;
-}
-
-.reject-btn:hover {
-    background: #d70015;
-}
-
-.reject-btn:disabled {
-    background: #86868b;
-    cursor: not-allowed;
 }
 
 @media (max-width: 768px) {

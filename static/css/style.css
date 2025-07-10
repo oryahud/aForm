@@ -371,6 +371,52 @@ h1 {
     background: #d70015;
 }
 
+.form-link {
+    margin-bottom: 15px;
+}
+
+.form-link label {
+    display: block;
+    font-size: 0.9em;
+    font-weight: 600;
+    color: #1d1d1f;
+    margin-bottom: 8px;
+}
+
+.link-container {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.share-link-input {
+    flex: 1;
+    padding: 8px 12px;
+    border: 1px solid #e5e5ea;
+    border-radius: 6px;
+    font-size: 0.85em;
+    background: #fafafa;
+    color: #86868b;
+    font-family: monospace;
+}
+
+.copy-btn {
+    background: #007aff;
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 0.8em;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.copy-btn:hover {
+    background: #0056b3;
+}
+
 .empty-state {
     text-align: center;
     padding: 60px 40px;

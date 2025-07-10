@@ -42,9 +42,23 @@ document.addEventListener('DOMContentLoaded', function() {
             });
             
             if (response.ok) {
+                const data = await response.json();
+                
                 // Show success message
                 document.querySelector('.public-form-container').style.display = 'none';
-                document.getElementById('successMessage').style.display = 'block';
+                const successMessage = document.getElementById('successMessage');
+                successMessage.style.display = 'block';
+                
+                // Add review link if provided
+                if (data.review_url) {
+                    successMessage.innerHTML += `
+                        <div style="margin-top: 20px;">
+                            <a href="${data.review_url}" class="create-form-btn" style="text-decoration: none; display: inline-block;">
+                                Review & Approve Submission
+                            </a>
+                        </div>
+                    `;
+                }
             } else {
                 const error = await response.json();
                 alert('Error: ' + (error.error || 'Failed to submit form'));

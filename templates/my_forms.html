@@ -20,10 +20,25 @@
                         <span class="form-date">{{ form.created_at[:10] }}</span>
                     </div>
                     <p class="form-description">Last updated: {{ form.updated_at[:10] }}</p>
+                    {% if form.status == 'published' %}
+                    <div class="form-link">
+                        <label>Share Link:</label>
+                        <div class="link-container">
+                            <input type="text" value="{{ request.url_root }}submit/{{ form.name }}" readonly class="share-link-input">
+                            <button class="copy-btn" onclick="copyFormLink(this)">Copy</button>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
                     <div class="form-actions">
                         <button class="create-form-btn" onclick="window.location.href='/form/{{ form.name }}'">
                             Edit Form
                         </button>
+                        {% if form.submissions and form.submissions|length > 0 %}
+                        <button class="secondary-btn" onclick="window.location.href='/form/{{ form.name }}/submissions'">
+                            View Submissions ({{ form.submissions|length }})
+                        </button>
+                        {% endif %}
                         <button class="delete-form-btn" onclick="confirmDeleteForm('{{ form.name }}')">
                             Delete
                         </button>

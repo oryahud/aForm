@@ -158,7 +158,7 @@ def submit_form(form_name):
     forms[form_index]['submissions'].append(submission)
     save_forms(forms)
     
-    return jsonify({'message': 'Form submitted successfully!', 'submission_id': submission['id']})
+    return jsonify({'message': 'Form submitted successfully!', 'submission_id': submission['id'], 'review_url': f"/review/{submission['id']}/{form_name}"})
 
 @app.route('/form/<form_name>/submissions')
 def view_submissions(form_name):
@@ -208,6 +208,21 @@ def delete_form(form_name):
     save_forms(forms)
     
     return jsonify({'message': 'Form deleted successfully'})
+
+@app.route('/review/<submission_id>/<form_name>')
+def review_submission(submission_id, form_name):
+    forms = load_forms()
+    form = next((f for f in forms if f['name'] == form_name), None)
+    
+    if not form:
+        return render_template('error.html', message='Form not found'), 404
+    
+    submission = next((s for s in form.get('submissions', []) if s['id'] == submission_id), None)
+    
+    if not submission:
+        return render_template('error.html', message='Submission not found'), 404
+    
+    return render_template('review_submission.html', form=form, submission=submission)
 
 @app.route('/my-forms')
 def my_forms():

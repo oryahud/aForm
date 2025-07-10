@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Review Submission - {{ form.name }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/review_submission.css') }}">
+</head>
+<body>
+    <div class="review-container">
+        <div class="review-header">
+            <h1>Review Your Submission</h1>
+            <p class="form-name">{{ form.name }}</p>
+        </div>
+
+        <div class="review-content">
+            <!-- Submission Status -->
+            <div class="status-section">
+                <h3>Submission Status</h3>
+                <div class="status-display">
+                    <span class="status-badge status-{{ submission.get('status', 'pending') }}">
+                        {{ submission.get('status', 'pending')|title }}
+                    </span>
+                    <p class="status-description">
+                        {% if submission.get('status', 'pending') == 'pending' %}
+                            Your submission is waiting for your final approval.
+                        {% elif submission.get('status') == 'approved' %}
+                            You have approved this submission.
+                        {% elif submission.get('status') == 'rejected' %}
+                            You have rejected this submission.
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+
+            <!-- Submission Details -->
+            <div class="submission-details">
+                <h3>Your Responses</h3>
+                {% for question in form.questions %}
+                <div class="response-item">
+                    <h4>{{ question.title }}</h4>
+                    <div class="response-value">
+                        {% set answer = submission.responses.get(question.id, '') %}
+                        {% if answer is iterable and answer is not string %}
+                            {% if answer %}
+                                <ul>
+                                    {% for item in answer %}
+                                    <li>{{ item }}</li>
+                                    {% endfor %}
+                                </ul>
+                            {% else %}
+                                <em>No selection</em>
+                            {% endif %}
+                        {% else %}
+                            {{ answer or 'No answer provided' }}
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- Submission Meta -->
+            <div class="submission-meta">
+                <p><strong>Submission ID:</strong> {{ submission.id }}</p>
+                <p><strong>Submitted At:</strong> {{ submission.submitted_at[:10] }} at {{ submission.submitted_at[11:19] }}</p>
+            </div>
+
+            <!-- Approval Actions -->
+            {% if submission.get('status', 'pending') == 'pending' %}
+            <div class="approval-actions">
+                <h3>Final Review</h3>
+                <p>Please review your responses above. Once you approve, your submission will be final.</p>
+                <div class="action-buttons">
+                    <button class="approve-btn" onclick="approveSubmission('approve')">
+                        ✓ Approve Submission
+                    </button>
+                    <button class="reject-btn" onclick="approveSubmission('reject')">
+                        ✗ Reject Submission
+                    </button>
+                </div>
+            </div>
+            {% else %}
+            <div class="final-status">
+                <h3>Submission Complete</h3>
+                <p>
+                    {% if submission.get('status') == 'approved' %}
+                        Thank you! Your submission has been approved and is now final.
+                    {% else %}
+                        Your submission has been rejected and will not be processed.
+                    {% endif %}
+                </p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <script>
+        window.submissionData = {{ submission | tojson }};
+        window.formName = "{{ form.name }}";
+    </script>
+    <script src="{{ url_for('static', filename='js/review_submission.js') }}"></script>
+</body>
+</html>
