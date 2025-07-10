@@ -280,10 +280,13 @@ async function saveForm() {
     }
 }
 
-// Publish form
-async function publishForm() {
+// Toggle publish/hide form
+async function togglePublish() {
+    const isPublished = window.formData.status === 'published';
+    const action = isPublished ? 'hide' : 'publish';
+    
     try {
-        const response = await fetch(`/api/form/${window.formData.name}/publish`, {
+        const response = await fetch(`/api/form/${window.formData.name}/${action}`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -293,33 +296,41 @@ async function publishForm() {
         if (response.ok) {
             const data = await response.json();
             
-            // Show success with share URL
-            const publishBtn = document.querySelector('.publish-btn');
-            publishBtn.textContent = 'Published!';
-            publishBtn.style.background = '#34c759';
+            // Update form status
+            window.formData.status = isPublished ? 'draft' : 'published';
             
-            // Show share URL
-            const shareUrl = data.share_url;
-            const message = `Form published successfully!\n\nShare this link:\n${shareUrl}`;
-            alert(message);
+            // Update button
+            const publishBtn = document.getElementById('publishBtn');
+            const publishBtnText = document.getElementById('publishBtnText');
             
-            // Copy to clipboard
-            navigator.clipboard.writeText(shareUrl).then(() => {
-                console.log('Share URL copied to clipboard');
-            }).catch(() => {
-                console.log('Could not copy to clipboard');
-            });
-            
-            setTimeout(() => {
-                publishBtn.textContent = 'Publish';
-                publishBtn.style.background = '';
-            }, 3000);
+            if (isPublished) {
+                // Form was hidden
+                publishBtnText.textContent = 'Publish';
+                publishBtn.style.background = '#007aff';
+                alert('Form hidden successfully!');
+            } else {
+                // Form was published
+                publishBtnText.textContent = 'Hide';
+                publishBtn.style.background = '#ff9500';
+                
+                // Show share URL
+                const shareUrl = data.share_url;
+                const message = `Form published successfully!\n\nShare this link:\n${shareUrl}`;
+                alert(message);
+                
+                // Copy to clipboard
+                navigator.clipboard.writeText(shareUrl).then(() => {
+                    console.log('Share URL copied to clipboard');
+                }).catch(() => {
+                    console.log('Could not copy to clipboard');
+                });
+            }
         } else {
-            alert('Failed to publish form. Please try again.');
+            alert(`Failed to ${action} form. Please try again.`);
         }
     } catch (error) {
-        console.error('Error publishing form:', error);
-        alert('Failed to publish form. Please try again.');
+        console.error(`Error ${action}ing form:`, error);
+        alert(`Failed to ${action} form. Please try again.`);
     }
 }
 

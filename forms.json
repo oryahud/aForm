@@ -2,7 +2,7 @@
   {
     "name": "Wow",
     "created_at": "2025-07-10T21:00:59.685017",
-    "updated_at": "2025-07-10T21:02:10.365984",
+    "updated_at": "2025-07-10T22:26:57.958748",
     "status": "published",
     "submissions": [
       {
@@ -11,6 +11,14 @@
         "status": "approved",
         "responses": {
           "q_1": "Or"
+        }
+      },
+      {
+        "id": "98738d6c-a407-4da9-b8c2-662cafc249ba",
+        "submitted_at": "2025-07-10T22:28:53.266130",
+        "status": "pending",
+        "responses": {
+          "q_1": "dfd"
         }
       }
     ],

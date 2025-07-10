@@ -122,6 +122,20 @@ def publish_form(form_name):
     share_url = f"{request.url_root}submit/{form_name}"
     return jsonify({'message': 'Form published successfully!', 'share_url': share_url})
 
+@app.route('/api/form/<form_name>/hide', methods=['POST'])
+def hide_form(form_name):
+    forms = load_forms()
+    form_index = next((i for i, f in enumerate(forms) if f['name'] == form_name), None)
+    
+    if form_index is None:
+        return jsonify({'error': 'Form not found'}), 404
+    
+    forms[form_index]['status'] = 'draft'
+    forms[form_index]['updated_at'] = datetime.now().isoformat()
+    save_forms(forms)
+    
+    return jsonify({'message': 'Form hidden successfully!'})
+
 @app.route('/submit/<form_name>')
 def public_form(form_name):
     forms = load_forms()

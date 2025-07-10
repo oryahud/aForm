@@ -26,8 +26,8 @@
                     <button class="create-form-btn" onclick="saveForm()">
                         Save Form
                     </button>
-                    <button class="publish-btn" onclick="publishForm()">
-                        Publish
+                    <button class="publish-btn" id="publishBtn" onclick="togglePublish()">
+                        <span id="publishBtnText">{{ 'Hide' if form.status == 'published' else 'Publish' }}</span>
                     </button>
                 </div>
             </div>
