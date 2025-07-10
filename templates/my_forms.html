@@ -24,6 +24,9 @@
                         <button class="create-form-btn" onclick="window.location.href='/form/{{ form.name }}'">
                             Edit Form
                         </button>
+                        <button class="delete-form-btn" onclick="confirmDeleteForm('{{ form.name }}')">
+                            Delete
+                        </button>
                     </div>
                 </div>
                 {% endfor %}
@@ -45,5 +48,21 @@
             </button>
         </div>
     </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div id="deleteFormModal" class="modal">
+        <div class="modal-content delete-modal">
+            <h2>Delete Form</h2>
+            <p>Are you sure you want to delete "<span id="deleteFormName"></span>"?</p>
+            <p><strong>This action cannot be undone.</strong> All form data and submissions will be permanently deleted.</p>
+            
+            <div class="modal-buttons">
+                <button class="secondary-btn" onclick="closeDeleteModal()">Cancel</button>
+                <button class="delete-confirm-btn" onclick="deleteForm()">Delete Form</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/my_forms.js') }}"></script>
 </body>
 </html>

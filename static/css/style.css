@@ -311,10 +311,64 @@ h1 {
     justify-content: flex-end;
 }
 
+.form-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+}
+
 .form-actions button {
     min-width: 100px;
     padding: 12px 20px;
     font-size: 0.95em;
+}
+
+.delete-form-btn {
+    background: #ff3b30;
+    color: white;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 8px;
+    font-size: 0.95em;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    min-width: 100px;
+}
+
+.delete-form-btn:hover {
+    background: #d70015;
+}
+
+.delete-modal {
+    max-width: 500px;
+    width: 90%;
+}
+
+.delete-modal h2 {
+    color: #ff3b30;
+    margin-bottom: 20px;
+}
+
+.delete-modal p {
+    margin-bottom: 15px;
+    line-height: 1.5;
+}
+
+.delete-confirm-btn {
+    background: #ff3b30;
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-size: 1em;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.delete-confirm-btn:hover {
+    background: #d70015;
 }
 
 .empty-state {

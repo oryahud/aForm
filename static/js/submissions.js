@@ -58,6 +58,29 @@ function viewSubmission(submissionId) {
         `;
     });
     
+    // Add approval actions if submission is pending
+    const status = submission.status || 'pending';
+    if (status === 'pending') {
+        html += `
+            <div class="approval-actions">
+                <button class="approve-btn" onclick="approveSubmission('${submission.id}', 'approve')">
+                    Approve
+                </button>
+                <button class="reject-btn" onclick="approveSubmission('${submission.id}', 'reject')">
+                    Reject
+                </button>
+            </div>
+        `;
+    } else {
+        html += `
+            <div class="approval-actions">
+                <p style="text-align: center; color: #86868b; margin: 0;">
+                    This submission has been ${status}
+                </p>
+            </div>
+        `;
+    }
+    
     detailsContainer.innerHTML = html;
     modal.className = 'modal show';
 }
@@ -73,6 +96,36 @@ window.addEventListener('click', function(e) {
         closeSubmissionModal();
     }
 });
+
+async function approveSubmission(submissionId, action) {
+    try {
+        const response = await fetch(`/api/form/${window.formData.name}/submission/${submissionId}/approve`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ action })
+        });
+        
+        if (response.ok) {
+            // Update the submission in local data
+            const submission = window.formData.submissions.find(s => s.id === submissionId);
+            if (submission) {
+                submission.status = action === 'approve' ? 'approved' : 'rejected';
+            }
+            
+            // Close modal and reload page to update table
+            closeSubmissionModal();
+            window.location.reload();
+        } else {
+            const error = await response.json();
+            alert('Error: ' + (error.error || 'Failed to update submission'));
+        }
+    } catch (error) {
+        console.error('Error updating submission:', error);
+        alert('Failed to update submission. Please try again.');
+    }
+}
 
 // Initialize share link if present
 document.addEventListener('DOMContentLoaded', function() {
