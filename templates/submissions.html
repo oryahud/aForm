@@ -37,7 +37,6 @@
                         <thead>
                             <tr>
                                 <th>Submitted At</th>
-                                <th>Status</th>
                                 {% for question in form.questions %}
                                 <th>{{ question.title }}</th>
                                 {% endfor %}
@@ -50,11 +49,6 @@
                                 <td class="submission-date">
                                     {{ submission.submitted_at[:10] }}<br>
                                     <small>{{ submission.submitted_at[11:19] }}</small>
-                                </td>
-                                <td class="submission-status">
-                                    <span class="status-badge status-{{ submission.get('status', 'pending') }}">
-                                        {{ submission.get('status', 'pending')|title }}
-                                    </span>
                                 </td>
                                 {% for question in form.questions %}
                                 <td class="submission-answer">

@@ -17,7 +17,10 @@
                 <div class="form-card">
                     <div class="form-card-header">
                         <h3>{{ form.name }}</h3>
-                        <span class="form-date">{{ form.created_at[:10] }}</span>
+                        <div class="header-right">
+                            <span class="status-badge status-{{ form.status }}">{{ form.status|title }}</span>
+                            <span class="form-date">{{ form.created_at[:10] }}</span>
+                        </div>
                     </div>
                     <p class="form-description">Last updated: {{ form.updated_at[:10] }}</p>
                     {% if form.status == 'published' %}

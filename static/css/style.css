@@ -285,6 +285,12 @@ h1 {
     margin-bottom: 15px;
 }
 
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
 .form-card h3 {
     font-size: 1.3em;
     font-weight: 600;
@@ -298,6 +304,25 @@ h1 {
     background: #f2f2f7;
     padding: 4px 8px;
     border-radius: 6px;
+}
+
+.status-badge {
+    font-size: 0.85em;
+    font-weight: 600;
+    padding: 4px 12px;
+    border-radius: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.status-published {
+    background: #34c759;
+    color: white;
+}
+
+.status-draft {
+    background: #ff9500;
+    color: white;
 }
 
 .form-description {
