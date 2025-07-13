@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - aForm</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/modern-saas.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/feather-icons/4.29.0/feather.min.css">
+    <style>
+        .login-container {
+            min-height: 100vh;
+            background: linear-gradient(135deg, var(--primary-600) 0%, var(--primary-700) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: var(--spacing-8);
+        }
+        
+        .login-card {
+            background: white;
+            border-radius: var(--radius-xl);
+            padding: var(--spacing-12);
+            box-shadow: var(--shadow-xl);
+            max-width: 400px;
+            width: 100%;
+            text-align: center;
+        }
+        
+        .login-logo {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--spacing-3);
+            margin-bottom: var(--spacing-8);
+            text-decoration: none;
+            color: var(--gray-900);
+        }
+        
+        .login-logo-icon {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, var(--primary-500), var(--primary-600));
+            border-radius: var(--radius-lg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+            font-size: 1.5rem;
+        }
+        
+        .login-logo-text {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--gray-900);
+        }
+        
+        .login-title {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--gray-900);
+            margin: 0 0 var(--spacing-2) 0;
+        }
+        
+        .login-subtitle {
+            font-size: 1.125rem;
+            color: var(--gray-600);
+            margin: 0 0 var(--spacing-10) 0;
+            line-height: 1.5;
+        }
+        
+        .google-login-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--spacing-3);
+            width: 100%;
+            padding: var(--spacing-4) var(--spacing-6);
+            background: white;
+            border: 2px solid var(--gray-300);
+            border-radius: var(--radius-lg);
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--gray-700);
+            text-decoration: none;
+            transition: all 0.3s ease;
+            box-shadow: var(--shadow-sm);
+        }
+        
+        .google-login-btn:hover {
+            border-color: var(--primary-500);
+            box-shadow: var(--shadow-md);
+            transform: translateY(-1px);
+        }
+        
+        .google-icon {
+            width: 20px;
+            height: 20px;
+            background: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTIyLjU2IDEyLjI1QzIyLjU2IDExLjQ3IDIyLjQ5IDEwLjcyIDIyLjM2IDEwSDE0VjE0LjI2SDIwLjU4QzIwLjMgMTYuMjEgMTkuMTggMTcuODEgMTcuNCAxOC43NlYyMS42OUgyMC4yQzIxLjk2IDIwLjA1IDIyLjU2IDE2LjMgMjIuNTYgMTIuMjVaIiBmaWxsPSIjNDI4NUY0Ii8+CjxwYXRoIGQ9Ik0xNCAyNEMxNy40MyAyNCAyMC4yNyAyMi43MyAyMC4yIDIxLjY5SDE3LjRDMTYuMzMgMjIuNSAxNC45NiAyMyAxNCAyM0MxMC40MyAyMyA3LjM5IDIwLjQ3IDYuMDcgMTguMzVIMi45N1YyMS4zQzUuMTQgMjMuNDMgOS40OCAyNSAxNCAyNVoiIGZpbGw9IiMzNEE4NTMiLz4KPHBhdGggZD0iTTYuMDcgMTguMzVDNS43IDE3LjU2IDUuNTEgMTYuNjkgNS41MSAxNS44VjEySDIuOTdWMTguMzVDMi45NyAxOS4zIDMuMjQgMjAuMTggMy43MSAyMC45TDYuMDcgMTguMzVaIiBmaWxsPSIjRkJCQzA0Ii8+CjxwYXRoIGQ9Ik0xNCA5QzE2LjEyIDkgMTcuOTMgOS42OSAxOS4zNSAxMS4wM0wyMi4wNiA4LjNDMjAuMjcgNi42MSAxNy40MiA1LjUgMTQgNS41QzkuNDggNS41IDUuMTQgNy4wNyAyLjk3IDkuMkg2LjA3QzcuMzkgNi45OCAxMC40MyA0LjUgMTQgNC41WiIgZmlsbD0iI0VBNDMzNSIvPgo8L3N2Zz4K') no-repeat center;
+            background-size: contain;
+        }
+        
+        .login-features {
+            margin-top: var(--spacing-10);
+            padding-top: var(--spacing-8);
+            border-top: 1px solid var(--gray-200);
+        }
+        
+        .features-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--gray-700);
+            margin: 0 0 var(--spacing-4) 0;
+        }
+        
+        .features-list {
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-2);
+            text-align: left;
+        }
+        
+        .feature-item {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-2);
+            font-size: 0.875rem;
+            color: var(--gray-600);
+        }
+        
+        .feature-icon {
+            color: var(--success-500);
+            width: 16px;
+            height: 16px;
+        }
+        
+        /* Warning colors for OAuth message */
+        :root {
+            --warning-50: #fffbeb;
+            --warning-200: #fed7aa;
+            --warning-700: #b45309;
+        }
+        
+        @media (max-width: 480px) {
+            .login-container {
+                padding: var(--spacing-4);
+            }
+            
+            .login-card {
+                padding: var(--spacing-8);
+            }
+            
+            .login-title {
+                font-size: 1.5rem;
+            }
+            
+            .google-login-btn {
+                font-size: 1rem;
+                padding: var(--spacing-3) var(--spacing-4);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-card">
+            <a href="#" class="login-logo">
+                <div class="login-logo-icon">A</div>
+                <span class="login-logo-text">aForm</span>
+            </a>
+            
+            <h1 class="login-title">Welcome Back</h1>
+            <p class="login-subtitle">Sign in to your account to create and manage your forms</p>
+            
+            {% if google_configured %}
+            <a href="{{ url_for('auth_login') }}" class="google-login-btn">
+                <div class="google-icon"></div>
+                Continue with Google
+            </a>
+            {% else %}
+            <div style="padding: var(--spacing-4); background: var(--warning-50); border: 1px solid var(--warning-200); border-radius: var(--radius-md); margin-bottom: var(--spacing-6);">
+                <p style="font-size: 0.875rem; color: var(--warning-700); margin: 0;">
+                    <strong>Google OAuth not configured.</strong> Use development login below or set up Google OAuth credentials.
+                </p>
+            </div>
+            {% endif %}
+            
+            <!-- Development Mode Login -->
+            <div style="margin-top: var(--spacing-6); {% if google_configured %}padding-top: var(--spacing-6); border-top: 1px solid var(--gray-200);{% endif %}">
+                {% if google_configured %}
+                <p style="font-size: 0.875rem; color: var(--gray-500); margin-bottom: var(--spacing-4);">
+                    Or use development mode:
+                </p>
+                {% endif %}
+                <a href="{{ url_for('dev_login') }}" class="btn btn-primary" style="width: 100%; justify-content: center;">
+                    <i data-feather="key"></i>
+                    {% if google_configured %}Login as Test User{% else %}Continue to Dashboard{% endif %}
+                </a>
+            </div>
+            
+            <div class="login-features">
+                <h3 class="features-title">What you can do:</h3>
+                <div class="features-list">
+                    <div class="feature-item">
+                        <i data-feather="check" class="feature-icon"></i>
+                        Create unlimited forms
+                    </div>
+                    <div class="feature-item">
+                        <i data-feather="check" class="feature-icon"></i>
+                        Collect responses securely
+                    </div>
+                    <div class="feature-item">
+                        <i data-feather="check" class="feature-icon"></i>
+                        Real-time analytics
+                    </div>
+                    <div class="feature-item">
+                        <i data-feather="check" class="feature-icon"></i>
+                        Export your data
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/feather-icons/4.29.0/feather.min.js"></script>
+    <script>
+        feather.replace();
+    </script>
+</body>
+</html>
