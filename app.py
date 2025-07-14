@@ -6,6 +6,8 @@ import uuid
 from datetime import datetime
 from dotenv import load_dotenv
 from auth import auth_manager, login_required, permission_required, role_required
+from database import db_manager
+from models import UserModel, FormModel
 
 # Load environment variables
 load_dotenv()
@@ -28,16 +30,19 @@ app.config['MAIL_DEFAULT_SENDER'] = os.getenv('MAIL_DEFAULT_SENDER')
 # Initialize services
 mail = Mail(app)
 auth_manager.init_app(app)
+db_manager.init_app(app)
 
 def load_forms():
-    if os.path.exists('forms.json'):
-        with open('forms.json', 'r') as f:
-            return json.load(f)
-    return []
+    """Load forms from MongoDB (deprecated - use FormModel methods directly)"""
+    # This method is kept for backward compatibility but is deprecated
+    # Use FormModel.get_all_forms() directly instead
+    return FormModel.get_all_forms()
 
 def save_forms(forms):
-    with open('forms.json', 'w') as f:
-        json.dump(forms, f, indent=2)
+    """Save forms to MongoDB (deprecated - use FormModel methods)"""
+    # This method is kept for backward compatibility but is deprecated
+    # Individual form operations should use FormModel methods
+    pass
 
 def send_invitation_email(to_email, inviter_name, form_name, role, form_url):
     """Send invitation email to collaborator"""
@@ -98,10 +103,9 @@ def send_invitation_email(to_email, inviter_name, form_name, role, form_url):
 @login_required
 def index():
     current_user = auth_manager.get_current_user()
-    forms = load_forms()
     
     # Get forms that user has access to (including form-level permissions)
-    accessible_forms = auth_manager.get_user_forms(forms)
+    accessible_forms = auth_manager.get_user_forms()
     
     return render_template('my_forms_modern.html', forms=accessible_forms, current_user=current_user)
 
@@ -229,10 +233,8 @@ def create_form():
     if not form_name:
         return jsonify({'error': 'Form name is required'}), 400
     
-    forms = load_forms()
-    
     # Check if form name already exists
-    if any(form['name'] == form_name for form in forms):
+    if FormModel.get_form_by_name(form_name):
         return jsonify({'error': 'Form name already exists'}), 400
     
     current_user = auth_manager.get_current_user()
@@ -240,8 +242,6 @@ def create_form():
     # Create new form with initial question and form-level permissions
     new_form = {
         'name': form_name,
-        'created_at': datetime.now().isoformat(),
-        'updated_at': datetime.now().isoformat(),
         'status': 'draft',
         'created_by': current_user['id'],
         'created_by_name': current_user['name'],
@@ -263,8 +263,7 @@ def create_form():
         ]
     }
     
-    forms.append(new_form)
-    save_forms(forms)
+    FormModel.create_form(new_form)
     
     return jsonify({'message': 'Form created successfully!', 'redirect': f'/form/{form_name}'})
 
@@ -272,8 +271,7 @@ def create_form():
 @login_required
 @permission_required('edit_form')
 def edit_form(form_name):
-    forms = load_forms()
-    form = next((f for f in forms if f['name'] == form_name), None)
+    form = FormModel.get_form_by_name(form_name)
     
     if not form:
         return redirect(url_for('index'))
@@ -289,13 +287,10 @@ def edit_form(form_name):
 @login_required
 def invite_user_to_form(form_name):
     """Invite a user to collaborate on a form"""
-    forms = load_forms()
-    form_index = next((i for i, f in enumerate(forms) if f['name'] == form_name), None)
+    form = FormModel.get_form_by_name(form_name)
     
-    if form_index is None:
+    if not form:
         return jsonify({'error': 'Form not found'}), 404
-    
-    form = forms[form_index]
     
     # Check if user is form admin
     if not auth_manager.has_form_permission(form, 'admin'):
@@ -312,8 +307,7 @@ def invite_user_to_form(form_name):
         return jsonify({'error': 'Invalid role'}), 400
     
     # Check if user exists
-    users = auth_manager.load_users()
-    invited_user = next((u for u in users if u['email'].lower() == email), None)
+    invited_user = UserModel.get_user_by_email(email)
     
     if not invited_user:
         return jsonify({'error': 'User not found. They must sign up first.'}), 404
@@ -328,15 +322,8 @@ def invite_user_to_form(form_name):
         invited_user_id in permissions.get('viewer', [])):
         return jsonify({'error': 'User already has access to this form'}), 400
     
-    # Add user to form permissions
-    if role not in permissions:
-        permissions[role] = []
-    
-    permissions[role].append(invited_user_id)
-    forms[form_index]['permissions'] = permissions
-    forms[form_index]['updated_at'] = datetime.now().isoformat()
-    
-    save_forms(forms)
+    # Add user to form permissions using FormModel
+    FormModel.add_collaborator(form_name, invited_user_id, role)
     
     # Send invitation email
     form_url = f"{request.url_root}form/{form_name}"
@@ -364,8 +351,7 @@ def invite_user_to_form(form_name):
 @login_required
 def get_form_collaborators(form_name):
     """Get list of form collaborators"""
-    forms = load_forms()
-    form = next((f for f in forms if f['name'] == form_name), None)
+    form = FormModel.get_form_by_name(form_name)
     
     if not form:
         return jsonify({'error': 'Form not found'}), 404
@@ -374,7 +360,7 @@ def get_form_collaborators(form_name):
     if not auth_manager.has_form_permission(form, 'edit'):
         return jsonify({'error': 'Access denied'}), 403
     
-    users = auth_manager.load_users()
+    users = UserModel.get_all_users()
     users_by_id = {u['id']: u for u in users}
     
     permissions = form.get('permissions', {})
@@ -399,13 +385,10 @@ def get_form_collaborators(form_name):
 @login_required
 def remove_form_collaborator(form_name, user_id):
     """Remove a collaborator from a form"""
-    forms = load_forms()
-    form_index = next((i for i, f in enumerate(forms) if f['name'] == form_name), None)
+    form = FormModel.get_form_by_name(form_name)
     
-    if form_index is None:
+    if not form:
         return jsonify({'error': 'Form not found'}), 404
-    
-    form = forms[form_index]
     
     # Check if user is form admin
     if not auth_manager.has_form_permission(form, 'admin'):
@@ -415,63 +398,62 @@ def remove_form_collaborator(form_name, user_id):
     if user_id == form.get('created_by'):
         return jsonify({'error': 'Cannot remove form creator'}), 400
     
-    # Remove user from all permission levels
+    # Check if user exists in collaborators
     permissions = form.get('permissions', {})
-    removed = False
+    user_exists = False
     
     for role in ['admin', 'editor', 'viewer']:
         if user_id in permissions.get(role, []):
-            permissions[role].remove(user_id)
-            removed = True
+            user_exists = True
+            break
     
-    if not removed:
+    if not user_exists:
         return jsonify({'error': 'User not found in collaborators'}), 404
     
-    forms[form_index]['permissions'] = permissions
-    forms[form_index]['updated_at'] = datetime.now().isoformat()
+    # Remove user from all permission levels using FormModel
+    success = FormModel.remove_collaborator(form_name, user_id)
     
-    save_forms(forms)
+    if not success:
+        return jsonify({'error': 'Failed to remove collaborator'}), 500
     
     return jsonify({'message': 'Collaborator removed successfully'})
 
 @app.route('/api/form/<form_name>/save', methods=['POST'])
 @login_required
 def save_form_data(form_name):
-    forms = load_forms()
-    form_index = next((i for i, f in enumerate(forms) if f['name'] == form_name), None)
+    form = FormModel.get_form_by_name(form_name)
     
-    if form_index is None:
+    if not form:
         return jsonify({'error': 'Form not found'}), 404
-    
-    form = forms[form_index]
     
     # Check form-level edit permission
     if not auth_manager.has_form_permission(form, 'edit'):
         return jsonify({'error': 'Access denied'}), 403
     
     data = request.get_json()
-    forms[form_index]['questions'] = data.get('questions', [])
-    forms[form_index]['updated_at'] = datetime.now().isoformat()
+    update_data = {
+        'questions': data.get('questions', [])
+    }
     
-    save_forms(forms)
-    return jsonify({'message': 'Form saved successfully'})
+    try:
+        FormModel.update_form(form_name, update_data)
+        return jsonify({'message': 'Form saved successfully'})
+    except ValueError as e:
+        return jsonify({'error': str(e)}), 500
 
 @app.route('/api/form/<form_name>/question', methods=['POST'])
 @login_required
 def add_question(form_name):
-    forms = load_forms()
-    form_index = next((i for i, f in enumerate(forms) if f['name'] == form_name), None)
+    form = FormModel.get_form_by_name(form_name)
     
-    if form_index is None:
+    if not form:
         return jsonify({'error': 'Form not found'}), 404
-    
-    form = forms[form_index]
     
     # Check form-level edit permission
     if not auth_manager.has_form_permission(form, 'edit'):
         return jsonify({'error': 'Access denied'}), 403
     
-    questions = forms[form_index]['questions']
+    questions = form.get('questions', [])
     question_num = len(questions) + 1
     new_question = {
         'id': f'q_{question_num}',
@@ -482,58 +464,58 @@ def add_question(form_name):
     }
     
     questions.append(new_question)
-    forms[form_index]['updated_at'] = datetime.now().isoformat()
-    save_forms(forms)
+    update_data = {'questions': questions}
     
-    return jsonify({'question': new_question})
+    try:
+        FormModel.update_form(form_name, update_data)
+        return jsonify({'question': new_question})
+    except ValueError as e:
+        return jsonify({'error': str(e)}), 500
 
 @app.route('/api/form/<form_name>/publish', methods=['POST'])
 @login_required
 def publish_form(form_name):
-    forms = load_forms()
-    form_index = next((i for i, f in enumerate(forms) if f['name'] == form_name), None)
+    form = FormModel.get_form_by_name(form_name)
     
-    if form_index is None:
+    if not form:
         return jsonify({'error': 'Form not found'}), 404
-    
-    form = forms[form_index]
     
     # Check form-level admin permission (only admins can publish)
     if not auth_manager.has_form_permission(form, 'admin'):
         return jsonify({'error': 'Only form admins can publish forms'}), 403
     
-    forms[form_index]['status'] = 'published'
-    forms[form_index]['updated_at'] = datetime.now().isoformat()
-    save_forms(forms)
+    update_data = {'status': 'published'}
     
-    share_url = f"{request.url_root}submit/{form_name}"
-    return jsonify({'message': 'Form published successfully!', 'share_url': share_url})
+    try:
+        FormModel.update_form(form_name, update_data)
+        share_url = f"{request.url_root}submit/{form_name}"
+        return jsonify({'message': 'Form published successfully!', 'share_url': share_url})
+    except ValueError as e:
+        return jsonify({'error': str(e)}), 500
 
 @app.route('/api/form/<form_name>/hide', methods=['POST'])
 @login_required
 def hide_form(form_name):
-    forms = load_forms()
-    form_index = next((i for i, f in enumerate(forms) if f['name'] == form_name), None)
+    form = FormModel.get_form_by_name(form_name)
     
-    if form_index is None:
+    if not form:
         return jsonify({'error': 'Form not found'}), 404
-    
-    form = forms[form_index]
     
     # Check form-level admin permission (only admins can hide)
     if not auth_manager.has_form_permission(form, 'admin'):
         return jsonify({'error': 'Only form admins can hide forms'}), 403
     
-    forms[form_index]['status'] = 'draft'
-    forms[form_index]['updated_at'] = datetime.now().isoformat()
-    save_forms(forms)
+    update_data = {'status': 'draft'}
     
-    return jsonify({'message': 'Form hidden successfully!'})
+    try:
+        FormModel.update_form(form_name, update_data)
+        return jsonify({'message': 'Form hidden successfully!'})
+    except ValueError as e:
+        return jsonify({'error': str(e)}), 500
 
 @app.route('/submit/<form_name>')
 def public_form(form_name):
-    forms = load_forms()
-    form = next((f for f in forms if f['name'] == form_name), None)
+    form = FormModel.get_form_by_name(form_name)
     
     if not form or form.get('status') != 'published':
         return render_template('error.html', message='Form not found or not published'), 404
@@ -542,10 +524,9 @@ def public_form(form_name):
 
 @app.route('/api/form/<form_name>/submit', methods=['POST'])
 def submit_form(form_name):
-    forms = load_forms()
-    form_index = next((i for i, f in enumerate(forms) if f['name'] == form_name), None)
+    form = FormModel.get_form_by_name(form_name)
     
-    if form_index is None or forms[form_index].get('status') != 'published':
+    if not form or form.get('status') != 'published':
         return jsonify({'error': 'Form not found or not published'}), 404
     
     data = request.get_json()
@@ -554,24 +535,21 @@ def submit_form(form_name):
     # Create submission
     submission = {
         'id': str(uuid.uuid4()),
-        'submitted_at': datetime.now().isoformat(),
         'responses': responses
     }
     
-    # Add to form submissions
-    if 'submissions' not in forms[form_index]:
-        forms[form_index]['submissions'] = []
+    # Add submission to form using FormModel
+    success = FormModel.add_submission(form_name, submission)
     
-    forms[form_index]['submissions'].append(submission)
-    save_forms(forms)
+    if not success:
+        return jsonify({'error': 'Failed to submit form'}), 500
     
     return jsonify({'message': 'Form submitted successfully!', 'submission_id': submission['id']})
 
 @app.route('/form/<form_name>/submissions')
 @login_required
 def view_submissions(form_name):
-    forms = load_forms()
-    form = next((f for f in forms if f['name'] == form_name), None)
+    form = FormModel.get_form_by_name(form_name)
     
     if not form:
         return redirect(url_for('index'))
@@ -587,40 +565,40 @@ def view_submissions(form_name):
 @login_required
 @permission_required('delete_form')
 def delete_form(form_name):
-    forms = load_forms()
-    form_index = next((i for i, f in enumerate(forms) if f['name'] == form_name), None)
+    form = FormModel.get_form_by_name(form_name)
     
-    if form_index is None:
+    if not form:
         return jsonify({'error': 'Form not found'}), 404
-    
-    form = forms[form_index]
     
     # Check form-level admin permission (only form admins can delete)
     if not auth_manager.has_form_permission(form, 'admin'):
         return jsonify({'error': 'Only form admins can delete forms'}), 403
     
-    forms.pop(form_index)
-    save_forms(forms)
+    success = FormModel.delete_form(form_name)
+    
+    if not success:
+        return jsonify({'error': 'Failed to delete form'}), 500
     
     return jsonify({'message': 'Form deleted successfully'})
 
 @app.route('/api/form/<form_name>/submission/<submission_id>/delete', methods=['DELETE'])
 def delete_submission(form_name, submission_id):
-    forms = load_forms()
-    form_index = next((i for i, f in enumerate(forms) if f['name'] == form_name), None)
+    form = FormModel.get_form_by_name(form_name)
     
-    if form_index is None:
+    if not form:
         return jsonify({'error': 'Form not found'}), 404
     
-    submissions = forms[form_index].get('submissions', [])
-    submission_index = next((i for i, s in enumerate(submissions) if s['id'] == submission_id), None)
+    # Check if submission exists
+    submissions = form.get('submissions', [])
+    submission_exists = any(s['id'] == submission_id for s in submissions)
     
-    if submission_index is None:
+    if not submission_exists:
         return jsonify({'error': 'Submission not found'}), 404
     
-    forms[form_index]['submissions'].pop(submission_index)
-    forms[form_index]['updated_at'] = datetime.now().isoformat()
-    save_forms(forms)
+    success = FormModel.delete_submission(form_name, submission_id)
+    
+    if not success:
+        return jsonify({'error': 'Failed to delete submission'}), 500
     
     return jsonify({'message': 'Submission deleted successfully'})
 
@@ -629,10 +607,9 @@ def delete_submission(form_name, submission_id):
 @login_required
 def my_forms():
     current_user = auth_manager.get_current_user()
-    forms = load_forms()
     
     # Get forms that user has access to (including form-level permissions)
-    accessible_forms = auth_manager.get_user_forms(forms)
+    accessible_forms = auth_manager.get_user_forms()
     
     return render_template('my_forms_modern.html', forms=accessible_forms, current_user=current_user)
 

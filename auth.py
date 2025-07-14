@@ -7,6 +7,8 @@ from functools import wraps
 from flask import session, redirect, url_for, request, jsonify, current_app
 from authlib.integrations.flask_client import OAuth
 from datetime import datetime
+from database import db_manager
+from models import UserModel, FormModel
 
 class AuthManager:
     def __init__(self, app=None):
@@ -38,52 +40,35 @@ class AuthManager:
             self.google = None
     
     def load_users(self):
-        """Load users from JSON file"""
-        if os.path.exists('users.json'):
-            with open('users.json', 'r') as f:
-                return json.load(f)
-        return []
+        """Load users from MongoDB"""
+        return UserModel.get_all_users()
     
     def save_users(self, users):
-        """Save users to JSON file"""
-        with open('users.json', 'w') as f:
-            json.dump(users, f, indent=2)
+        """Save users to MongoDB (deprecated - use UserModel methods)"""
+        # This method is kept for backward compatibility but is deprecated
+        # Individual user operations should use UserModel methods
+        pass
     
     def get_user_by_email(self, email):
         """Get user by email"""
-        users = self.load_users()
-        return next((user for user in users if user['email'] == email), None)
+        return UserModel.get_user_by_email(email)
     
     def create_or_update_user(self, user_info):
         """Create or update user from OAuth response"""
-        users = self.load_users()
-        
         # Check if user exists
         existing_user = self.get_user_by_email(user_info['email'])
         
         if existing_user:
             # Update existing user
-            existing_user['name'] = user_info.get('name', existing_user.get('name'))
-            existing_user['picture'] = user_info.get('picture', existing_user.get('picture'))
-            existing_user['last_login'] = datetime.now().isoformat()
-            user = existing_user
-        else:
-            # Create new user with default role
-            import hashlib
-            user_id = hashlib.md5(user_info['email'].encode()).hexdigest()[:8]
-            user = {
-                'id': user_id,
-                'email': user_info['email'],
-                'name': user_info.get('name', ''),
-                'picture': user_info.get('picture', ''),
-                'role': 'user',  # Default role
-                'created_at': datetime.now().isoformat(),
-                'last_login': datetime.now().isoformat(),
-                'status': 'active'
+            update_data = {
+                'name': user_info.get('name', existing_user.get('name')),
+                'picture': user_info.get('picture', existing_user.get('picture'))
             }
-            users.append(user)
+            user = UserModel.update_user(existing_user['id'], update_data)
+        else:
+            # Create new user
+            user = UserModel.create_user(user_info)
         
-        self.save_users(users)
         return user
     
     def get_current_user(self):
@@ -161,7 +146,7 @@ class AuthManager:
         
         return False
     
-    def get_user_forms(self, forms):
+    def get_user_forms(self, forms=None):
         """Get forms that the current user has access to"""
         user = self.get_current_user()
         if not user:
@@ -169,20 +154,10 @@ class AuthManager:
         
         # Global admins see all forms
         if user.get('role') == 'admin':
-            return forms
+            return FormModel.get_all_forms()
         
-        user_id = user['id']
-        accessible_forms = []
-        
-        for form in forms:
-            permissions = form.get('permissions', {})
-            # Check if user has any form-level permission
-            if (user_id in permissions.get('admin', []) or
-                user_id in permissions.get('editor', []) or
-                user_id in permissions.get('viewer', [])):
-                accessible_forms.append(form)
-        
-        return accessible_forms
+        # Get user's accessible forms from MongoDB
+        return FormModel.get_user_forms(user['id'])
 
 # Initialize auth manager
 auth_manager = AuthManager()

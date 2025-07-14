@@ -59,6 +59,10 @@ SECRET_KEY=your_secret_key_here
 GOOGLE_CLIENT_ID=your_google_client_id
 GOOGLE_CLIENT_SECRET=your_google_client_secret
 
+# MongoDB Configuration
+MONGODB_URI=mongodb://localhost:27017/
+MONGODB_DB_NAME=aform
+
 # Email Configuration (Optional)
 MAIL_SERVER=smtp.gmail.com
 MAIL_PORT=587
@@ -68,7 +72,14 @@ MAIL_PASSWORD=your_app_password
 MAIL_DEFAULT_SENDER=your_email@gmail.com
 ```
 
-4. Set up Google OAuth:
+4. Set up MongoDB:
+   - Install MongoDB locally or use MongoDB Atlas (cloud)
+   - For local installation: [MongoDB Installation Guide](https://docs.mongodb.com/manual/installation/)
+   - For MongoDB Atlas: [MongoDB Atlas Setup](https://docs.atlas.mongodb.com/getting-started/)
+   - Start MongoDB service (local): `mongod`
+   - Create database: `aform` (will be created automatically on first use)
+
+5. Set up Google OAuth:
    - Go to [Google Cloud Console](https://console.cloud.google.com/)
    - Create a new project or select an existing one
    - Enable Google+ API
@@ -88,16 +99,16 @@ The application will be available at `http://localhost:5000`
 
 ```
 aForm/
-├── app.py                 # Main Flask application
-├── auth.py               # Authentication and authorization logic
-├── main.py               # Application entry point
-├── requirements.txt      # Python dependencies
-├── forms.json           # Form data storage
-├── users.json           # User data storage
-├── static/              # Static assets
-│   ├── css/            # Stylesheets
-│   └── js/             # JavaScript files
-└── templates/          # HTML templates
+├── app.py                    # Main Flask application
+├── auth.py                  # Authentication and authorization logic
+├── database.py              # MongoDB connection and configuration
+├── models.py                # Database models for users and forms
+├── main.py                  # Application entry point
+├── requirements.txt         # Python dependencies
+├── static/                 # Static assets
+│   ├── css/               # Stylesheets
+│   └── js/                # JavaScript files
+└── templates/             # HTML templates
     ├── form_builder_modern.html
     ├── my_forms_modern.html
     ├── public_form_modern.html
@@ -133,15 +144,16 @@ aForm/
 ## Technologies Used
 
 - **Backend**: Flask (Python)
+- **Database**: MongoDB with PyMongo
 - **Authentication**: Google OAuth2 via Authlib
 - **Email**: Flask-Mail
 - **Frontend**: HTML5, CSS3, JavaScript (Vanilla)
 - **Icons**: Feather Icons
-- **Storage**: JSON files (development)
+- **Storage**: MongoDB (production-ready)
 
 ## Development
 
-The application uses JSON files for data storage, making it easy to set up for development. For production use, consider migrating to a proper database system.
+The application now uses MongoDB for data storage, making it production-ready and scalable. For local development, ensure MongoDB is running on your system.
 
 ### Running in Development Mode
 
