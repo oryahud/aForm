@@ -17,6 +17,15 @@ jobs:
     - name: Test Python
       run: python -c "print('✅ Python works')"
     
+    - name: Test absolute minimal
+      run: |
+        python test_absolute_minimal.py
+    
+    - name: Test with pytest
+      run: |
+        pip install pytest
+        python -m pytest test_absolute_minimal.py -v
+    
     - name: Test imports
       run: |
         export SECRET_KEY=test
@@ -27,6 +36,13 @@ jobs:
         python -c "
 import os
 print('Environment:', os.getenv('FLASK_ENV'))
-import app
-print('✅ app imported')
+print('Working directory:', os.getcwd())
+print('Files:', os.listdir('.'))
+try:
+    import app
+    print('✅ app imported')
+except Exception as e:
+    print('❌ app import failed:', e)
+    import traceback
+    traceback.print_exc()
 "
