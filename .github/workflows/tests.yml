@@ -56,7 +56,7 @@ jobs:
     
     - name: Run all tests with coverage
       run: |
-        python -m pytest tests/ -v --cov=. --cov-report=xml --cov-exclude="tests/*" --tb=short || echo "Full test suite had issues"
+        python -m pytest tests/ -v --cov=app --cov=auth --cov=database --cov=models --cov-report=xml --tb=short || echo "Full test suite had issues"
 
     - name: Upload coverage report
       run: |
