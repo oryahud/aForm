@@ -40,6 +40,8 @@ jobs:
         echo "FLASK_ENV=testing" >> $GITHUB_ENV
         echo "TESTING=true" >> $GITHUB_ENV
         echo "CI=true" >> $GITHUB_ENV
+        echo "GOOGLE_CLIENT_ID=placeholder_client_id" >> $GITHUB_ENV
+        echo "GOOGLE_CLIENT_SECRET=placeholder_client_secret" >> $GITHUB_ENV
 
     - name: Test basic imports
       run: |
