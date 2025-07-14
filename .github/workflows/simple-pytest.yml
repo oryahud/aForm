@@ -1,0 +1,44 @@
+name: Simple Pytest
+
+on: [push]
+
+jobs:
+  simple-pytest:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    
+    - name: Install dependencies
+      run: |
+        pip install -r requirements.txt
+    
+    - name: Setup environment
+      run: |
+        export SECRET_KEY=test_key
+        export FLASK_ENV=testing
+        export TESTING=true
+        export GOOGLE_CLIENT_ID=placeholder
+        export GOOGLE_CLIENT_SECRET=placeholder
+        echo "Environment setup complete"
+    
+    - name: Test with simple pytest config
+      run: |
+        export SECRET_KEY=test_key
+        export FLASK_ENV=testing
+        export TESTING=true
+        export GOOGLE_CLIENT_ID=placeholder
+        export GOOGLE_CLIENT_SECRET=placeholder
+        python -m pytest test_absolute_minimal.py -c pytest_simple.ini -v
+    
+    - name: Test one CI test
+      run: |
+        export SECRET_KEY=test_key
+        export FLASK_ENV=testing
+        export TESTING=true
+        export CI=true
+        export GOOGLE_CLIENT_ID=placeholder
+        export GOOGLE_CLIENT_SECRET=placeholder
+        python -m pytest tests/test_ci_basic.py::test_python_version -c pytest_simple.ini -v
