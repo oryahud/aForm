@@ -18,6 +18,11 @@ class DatabaseManager:
     
     def init_app(self, app):
         """Initialize database connection with Flask app"""
+        # Skip database initialization in testing mode
+        if app.config.get('TESTING', False) or os.getenv('FLASK_ENV') == 'testing':
+            logger.info("Skipping MongoDB initialization in testing mode")
+            return
+        
         # Get MongoDB configuration from environment
         mongo_uri = os.getenv('MONGODB_URI', 'mongodb://localhost:27017/')
         db_name = os.getenv('MONGODB_DB_NAME', 'aform')

@@ -30,7 +30,14 @@ app.config['MAIL_DEFAULT_SENDER'] = os.getenv('MAIL_DEFAULT_SENDER')
 # Initialize services
 mail = Mail(app)
 auth_manager.init_app(app)
-db_manager.init_app(app)
+
+# Only initialize database if not in testing mode
+if not app.config.get('TESTING', False) and not os.getenv('FLASK_ENV') == 'testing':
+    try:
+        db_manager.init_app(app)
+    except Exception as e:
+        print(f"Warning: Database initialization failed: {e}")
+        print("Running without database connection (likely in testing mode)")
 
 def load_forms():
     """Load forms from MongoDB (deprecated - use FormModel methods directly)"""
