@@ -1,0 +1,32 @@
+name: Minimal
+
+on: [push]
+
+jobs:
+  minimal:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    
+    - name: Install Flask
+      run: pip install Flask authlib pymongo python-dotenv flask-mail requests
+    
+    - name: Test Python
+      run: python -c "print('✅ Python works')"
+    
+    - name: Test imports
+      run: |
+        export SECRET_KEY=test
+        export FLASK_ENV=testing
+        export TESTING=true
+        export GOOGLE_CLIENT_ID=placeholder_client_id
+        export GOOGLE_CLIENT_SECRET=placeholder_client_secret
+        python -c "
+import os
+print('Environment:', os.getenv('FLASK_ENV'))
+import app
+print('✅ app imported')
+"
