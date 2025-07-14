@@ -1,0 +1,38 @@
+name: Always Run
+
+on: [push]
+
+jobs:
+  always:
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+    - name: Always succeeds
+      run: |
+        echo "This step always succeeds"
+        echo "Current time: $(date)"
+        echo "GitHub Actor: ${{ github.actor }}"
+        echo "GitHub Repository: ${{ github.repository }}"
+        echo "GitHub Ref: ${{ github.ref }}"
+    
+    - uses: actions/checkout@v4
+      continue-on-error: true
+    
+    - name: Show repository contents
+      run: |
+        echo "Repository contents:"
+        ls -la || echo "ls failed"
+        echo "Python files:"
+        find . -name "*.py" | head -10 || echo "find failed"
+    
+    - name: Try Python
+      run: |
+        python3 --version || echo "python3 failed"
+        python --version || echo "python failed"
+        which python3 || echo "which python3 failed"
+        which python || echo "which python failed"
+    
+    - name: Final status
+      run: |
+        echo "Workflow completed - checking what worked"
+        echo "SUCCESS: At least basic GitHub Actions execution works"
