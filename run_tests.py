@@ -111,11 +111,14 @@ def main():
     
     # Check if pytest is available
     try:
-        subprocess.run(['pytest', '--version'], capture_output=True, check=True)
+        result = subprocess.run(['python', '-m', 'pytest', '--version'], capture_output=True, check=True)
     except (subprocess.CalledProcessError, FileNotFoundError):
-        print("❌ pytest not found. Please install test dependencies:")
-        print("   pip install -r requirements.txt")
-        return 1
+        try:
+            result = subprocess.run(['pytest', '--version'], capture_output=True, check=True)
+        except (subprocess.CalledProcessError, FileNotFoundError):
+            print("❌ pytest not found. Please install test dependencies:")
+            print("   pip install -r requirements.txt")
+            return 1
     
     # Run the tests
     success = run_command(command, "Running aForm Tests")

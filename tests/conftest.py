@@ -11,13 +11,24 @@ from datetime import datetime
 # Import application modules
 import sys
 import os
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from app import app as flask_app
-from database import db_manager
-from models import UserModel, FormModel
-from auth import auth_manager
-import factory
+# Add the parent directory to Python path
+project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
+
+try:
+    from app import app as flask_app
+    from database import db_manager
+    from models import UserModel, FormModel
+    from auth import auth_manager
+    import factory
+except ImportError as e:
+    print(f"Import error: {e}")
+    print(f"Python path: {sys.path}")
+    print(f"Current directory: {os.getcwd()}")
+    print(f"Project root: {project_root}")
+    raise
 
 
 @pytest.fixture
