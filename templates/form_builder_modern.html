@@ -261,6 +261,129 @@
                 padding: var(--spacing-4);
             }
         }
+        
+        /* Share Modal Styles */
+        .share-section {
+            margin-bottom: var(--spacing-8);
+            padding-bottom: var(--spacing-6);
+            border-bottom: 1px solid var(--gray-200);
+        }
+        
+        .share-section:last-child {
+            border-bottom: none;
+        }
+        
+        .share-section h3 {
+            font-size: 1.125rem;
+            font-weight: 600;
+            margin: 0 0 var(--spacing-2) 0;
+            color: var(--gray-900);
+        }
+        
+        .share-section h4 {
+            font-size: 1rem;
+            font-weight: 500;
+            margin: var(--spacing-4) 0 var(--spacing-3) 0;
+            color: var(--gray-800);
+        }
+        
+        .share-link-container {
+            display: flex;
+            gap: var(--spacing-2);
+            align-items: center;
+        }
+        
+        .collaborator-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: var(--spacing-3);
+            border: 1px solid var(--gray-200);
+            border-radius: var(--radius-md);
+            margin-bottom: var(--spacing-2);
+            background: var(--gray-50);
+        }
+        
+        .collaborator-info {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .collaborator-name {
+            font-weight: 500;
+            color: var(--gray-900);
+        }
+        
+        .collaborator-email {
+            font-size: 0.875rem;
+            color: var(--gray-600);
+        }
+        
+        .collaborator-role {
+            background: var(--primary-100);
+            color: var(--primary-700);
+            padding: var(--spacing-1) var(--spacing-2);
+            border-radius: var(--radius-sm);
+            font-size: 0.75rem;
+            font-weight: 500;
+            text-transform: uppercase;
+        }
+        
+        .collaborator-actions {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-2);
+        }
+        
+        /* Modal styles */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        
+        .modal-content {
+            background: white;
+            border-radius: var(--radius-xl);
+            box-shadow: var(--shadow-2xl);
+            max-height: 80vh;
+            overflow-y: auto;
+            margin: var(--spacing-4);
+            max-width: 500px;
+            width: 100%;
+        }
+        
+        .modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: var(--spacing-6) var(--spacing-6) var(--spacing-4) var(--spacing-6);
+            border-bottom: 1px solid var(--gray-200);
+        }
+        
+        .modal-header h2 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin: 0;
+            color: var(--gray-900);
+        }
+        
+        .modal-body {
+            padding: var(--spacing-6);
+        }
+        
+        .text-muted {
+            color: var(--gray-600);
+            font-size: 0.875rem;
+            margin: 0 0 var(--spacing-4) 0;
+        }
     </style>
 </head>
 <body>
@@ -342,6 +465,13 @@
                 </div>
                 
                 <div class="form-builder-actions">
+                    <!-- Only show Share button for form admins -->
+                    {% if current_user and current_user.id in form.permissions.admin %}
+                    <button class="btn btn-secondary" onclick="openShareModal()">
+                        <i data-feather="users"></i>
+                        Share
+                    </button>
+                    {% endif %}
                     <button class="btn btn-secondary" onclick="saveForm()">
                         <i data-feather="save"></i>
                         Save
@@ -426,6 +556,61 @@
         </main>
     </div>
 
+    <!-- Share Modal -->
+    <div id="shareModal" class="modal" style="display: none;">
+        <div class="modal-content" style="max-width: 600px;">
+            <div class="modal-header">
+                <h2>Share Form</h2>
+                <button class="btn btn-ghost btn-sm" onclick="closeShareModal()">
+                    <i data-feather="x"></i>
+                </button>
+            </div>
+            
+            <div class="modal-body">
+                <!-- Public Link Section -->
+                <div class="share-section">
+                    <h3>Public Link</h3>
+                    <p class="text-muted">Anyone with this link can fill out your form</p>
+                    <div class="share-link-container">
+                        <input type="text" id="publicLink" class="form-input" readonly>
+                        <button class="btn btn-secondary" onclick="copyPublicLink()">
+                            <i data-feather="copy"></i>
+                            Copy
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Invite Collaborators Section -->
+                <div class="share-section">
+                    <h3>Invite Collaborators</h3>
+                    <p class="text-muted">Give specific people access to edit or view this form</p>
+                    
+                    <div class="invite-form">
+                        <div style="display: flex; gap: var(--spacing-3); margin-bottom: var(--spacing-4);">
+                            <input type="email" id="inviteEmail" placeholder="Enter email address" class="form-input" style="flex: 1;">
+                            <select id="inviteRole" class="form-select" style="width: 120px;">
+                                <option value="editor">Editor</option>
+                                <option value="viewer">Viewer</option>
+                            </select>
+                            <button class="btn btn-primary" onclick="sendInvite()">
+                                <i data-feather="send"></i>
+                                Invite
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Current Collaborators -->
+                    <div class="collaborators-section">
+                        <h4>Current Collaborators</h4>
+                        <div id="collaboratorsList">
+                            <!-- Collaborators will be loaded here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Feather Icons -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/feather-icons/4.29.0/feather.min.js"></script>
     <script>
@@ -492,6 +677,146 @@
                 selectQuestion(0);
             }
         });
+        
+        // Sharing functionality
+        function openShareModal() {
+            console.log('Opening share modal...');
+            const modal = document.getElementById('shareModal');
+            if (!modal) {
+                console.error('Share modal not found!');
+                return;
+            }
+            
+            modal.style.display = 'flex';
+            
+            // Set public link
+            const publicLink = `${window.location.origin}/submit/${window.formData.name}`;
+            document.getElementById('publicLink').value = publicLink;
+            
+            // Load collaborators
+            loadCollaborators();
+        }
+        
+        function closeShareModal() {
+            document.getElementById('shareModal').style.display = 'none';
+        }
+        
+        function copyPublicLink() {
+            const linkInput = document.getElementById('publicLink');
+            linkInput.select();
+            document.execCommand('copy');
+            
+            // Show feedback
+            const btn = event.target.closest('button');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i data-feather="check"></i> Copied!';
+            feather.replace();
+            
+            setTimeout(() => {
+                btn.innerHTML = originalText;
+                feather.replace();
+            }, 2000);
+        }
+        
+        async function sendInvite() {
+            const email = document.getElementById('inviteEmail').value.trim();
+            const role = document.getElementById('inviteRole').value;
+            
+            if (!email) {
+                alert('Please enter an email address');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/api/form/${window.formData.name}/invite`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ email, role })
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    document.getElementById('inviteEmail').value = '';
+                    loadCollaborators(); // Refresh collaborators list
+                    alert(`User ${email} invited successfully as ${role}!`);
+                } else {
+                    alert(result.error || 'Failed to send invite');
+                }
+            } catch (error) {
+                console.error('Error sending invite:', error);
+                alert('Failed to send invite');
+            }
+        }
+        
+        async function loadCollaborators() {
+            try {
+                const response = await fetch(`/api/form/${window.formData.name}/collaborators`);
+                const result = await response.json();
+                
+                if (response.ok) {
+                    renderCollaborators(result.collaborators);
+                } else {
+                    console.error('Failed to load collaborators:', result.error);
+                }
+            } catch (error) {
+                console.error('Error loading collaborators:', error);
+            }
+        }
+        
+        function renderCollaborators(collaborators) {
+            const container = document.getElementById('collaboratorsList');
+            
+            if (collaborators.length === 0) {
+                container.innerHTML = '<p class="text-muted">No collaborators yet</p>';
+                return;
+            }
+            
+            container.innerHTML = collaborators.map(collaborator => `
+                <div class="collaborator-item">
+                    <div class="collaborator-info">
+                        <div class="collaborator-name">${collaborator.name}</div>
+                        <div class="collaborator-email">${collaborator.email}</div>
+                    </div>
+                    <div class="collaborator-actions">
+                        <span class="collaborator-role">${collaborator.role}</span>
+                        ${!collaborator.is_creator ? `
+                            <button class="btn btn-ghost btn-sm" onclick="removeCollaborator('${collaborator.id}')" title="Remove collaborator">
+                                <i data-feather="trash-2"></i>
+                            </button>
+                        ` : ''}
+                    </div>
+                </div>
+            `).join('');
+            
+            feather.replace();
+        }
+        
+        async function removeCollaborator(userId) {
+            if (!confirm('Are you sure you want to remove this collaborator?')) {
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/api/form/${window.formData.name}/collaborators/${userId}`, {
+                    method: 'DELETE'
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    loadCollaborators(); // Refresh collaborators list
+                    alert('Collaborator removed successfully');
+                } else {
+                    alert(result.error || 'Failed to remove collaborator');
+                }
+            } catch (error) {
+                console.error('Error removing collaborator:', error);
+                alert('Failed to remove collaborator');
+            }
+        }
     </script>
 </body>
 </html>

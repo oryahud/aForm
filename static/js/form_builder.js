@@ -294,16 +294,32 @@ async function saveForm() {
             lastSavedState = JSON.stringify(window.formData.questions);
             hasUnsavedChanges = false;
             
-            // Show success message
-            const saveBtn = document.querySelector('.header-actions .create-form-btn');
-            const originalText = saveBtn.textContent;
-            saveBtn.textContent = 'Saved!';
-            saveBtn.style.background = '#34c759';
+            // Show success message - find the save button in modern template
+            const saveBtn = document.querySelector('button[onclick="saveForm()"]') || 
+                           document.querySelector('.header-actions .create-form-btn');
             
-            setTimeout(() => {
-                saveBtn.textContent = originalText;
-                saveBtn.style.background = '';
-            }, 2000);
+            if (saveBtn) {
+                const originalText = saveBtn.innerHTML;
+                saveBtn.innerHTML = '<i data-feather="check"></i> Saved!';
+                saveBtn.style.background = '#10b981';
+                saveBtn.style.borderColor = '#10b981';
+                
+                // Replace feather icons
+                if (typeof feather !== 'undefined') {
+                    feather.replace();
+                }
+                
+                setTimeout(() => {
+                    saveBtn.innerHTML = originalText;
+                    saveBtn.style.background = '';
+                    saveBtn.style.borderColor = '';
+                    
+                    // Replace feather icons again
+                    if (typeof feather !== 'undefined') {
+                        feather.replace();
+                    }
+                }, 2000);
+            }
             
             return true;
         } else {

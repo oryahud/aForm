@@ -134,6 +134,55 @@ class AuthManager:
             ]
         }
         return role_permissions.get(role, [])
+    
+    def has_form_permission(self, form, permission_type):
+        """Check if current user has specific permission on a form"""
+        user = self.get_current_user()
+        if not user:
+            return False
+        
+        # Global admins have access to everything
+        if user.get('role') == 'admin':
+            return True
+        
+        user_id = user['id']
+        permissions = form.get('permissions', {})
+        
+        # Check form-level permissions
+        if permission_type == 'admin':
+            return user_id in permissions.get('admin', [])
+        elif permission_type == 'edit':
+            return (user_id in permissions.get('admin', []) or 
+                    user_id in permissions.get('editor', []))
+        elif permission_type == 'view_submissions':
+            return (user_id in permissions.get('admin', []) or 
+                    user_id in permissions.get('editor', []) or
+                    user_id in permissions.get('viewer', []))
+        
+        return False
+    
+    def get_user_forms(self, forms):
+        """Get forms that the current user has access to"""
+        user = self.get_current_user()
+        if not user:
+            return []
+        
+        # Global admins see all forms
+        if user.get('role') == 'admin':
+            return forms
+        
+        user_id = user['id']
+        accessible_forms = []
+        
+        for form in forms:
+            permissions = form.get('permissions', {})
+            # Check if user has any form-level permission
+            if (user_id in permissions.get('admin', []) or
+                user_id in permissions.get('editor', []) or
+                user_id in permissions.get('viewer', [])):
+                accessible_forms.append(form)
+        
+        return accessible_forms
 
 # Initialize auth manager
 auth_manager = AuthManager()

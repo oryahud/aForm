@@ -2,3 +2,4 @@ Flask==2.3.3
 authlib==1.2.1
 requests==2.31.0
 python-dotenv==1.0.0
+flask-mail==0.9.1

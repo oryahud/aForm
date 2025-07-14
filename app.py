@@ -1,4 +1,5 @@
 from flask import Flask, render_template, request, jsonify, redirect, url_for, session
+from flask_mail import Mail, Message
 import json
 import os
 import uuid
@@ -16,7 +17,16 @@ app.secret_key = os.getenv('SECRET_KEY', 'development_secret_key_change_in_produ
 app.config['GOOGLE_CLIENT_ID'] = os.getenv('GOOGLE_CLIENT_ID')
 app.config['GOOGLE_CLIENT_SECRET'] = os.getenv('GOOGLE_CLIENT_SECRET')
 
-# Initialize auth manager
+# Configure Mail
+app.config['MAIL_SERVER'] = os.getenv('MAIL_SERVER', 'smtp.gmail.com')
+app.config['MAIL_PORT'] = int(os.getenv('MAIL_PORT', 587))
+app.config['MAIL_USE_TLS'] = os.getenv('MAIL_USE_TLS', 'True').lower() == 'true'
+app.config['MAIL_USERNAME'] = os.getenv('MAIL_USERNAME')
+app.config['MAIL_PASSWORD'] = os.getenv('MAIL_PASSWORD')
+app.config['MAIL_DEFAULT_SENDER'] = os.getenv('MAIL_DEFAULT_SENDER')
+
+# Initialize services
+mail = Mail(app)
 auth_manager.init_app(app)
 
 def load_forms():
@@ -29,18 +39,71 @@ def save_forms(forms):
     with open('forms.json', 'w') as f:
         json.dump(forms, f, indent=2)
 
+def send_invitation_email(to_email, inviter_name, form_name, role, form_url):
+    """Send invitation email to collaborator"""
+    try:
+        if not app.config.get('MAIL_USERNAME') or app.config.get('MAIL_USERNAME') == 'your-email@gmail.com':
+            print(f"📧 Email not configured - invitation would be sent to: {to_email}")
+            print(f"   Form: {form_name} | Role: {role} | Inviter: {inviter_name}")
+            print(f"   Form URL: {form_url}")
+            return True
+        
+        subject = f"You've been invited to collaborate on '{form_name}'"
+        
+        html_body = f"""
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <h2 style="color: #2563eb;">Form Collaboration Invitation</h2>
+            
+            <p>Hi there!</p>
+            
+            <p><strong>{inviter_name}</strong> has invited you to collaborate on the form "<strong>{form_name}</strong>" as a <strong>{role.title()}</strong>.</p>
+            
+            <div style="background: #f3f4f6; padding: 20px; border-radius: 8px; margin: 20px 0;">
+                <h3 style="margin-top: 0;">What you can do as a {role.title()}:</h3>
+                <ul>
+                    {'<li>Edit form questions and settings</li><li>View form submissions</li>' if role == 'editor' else '<li>View form submissions</li>'}
+                </ul>
+            </div>
+            
+            <p>
+                <a href="{form_url}" style="background: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">
+                    Access Form
+                </a>
+            </p>
+            
+            <p>If you don't have an account yet, you'll need to sign up first at <a href="{request.url_root}">aForm</a>.</p>
+            
+            <hr style="margin: 30px 0; border: none; border-top: 1px solid #e5e7eb;">
+            <p style="color: #6b7280; font-size: 14px;">
+                This invitation was sent by {inviter_name} through aForm. 
+                If you weren't expecting this invitation, you can safely ignore this email.
+            </p>
+        </div>
+        """
+        
+        msg = Message(
+            subject=subject,
+            recipients=[to_email],
+            html=html_body
+        )
+        
+        mail.send(msg)
+        return True
+        
+    except Exception as e:
+        print(f"Failed to send email: {e}")
+        return False
+
 @app.route('/')
 @login_required
 def index():
     current_user = auth_manager.get_current_user()
     forms = load_forms()
     
-    # Filter forms by user (unless admin)
-    if not auth_manager.has_role('admin'):
-        user_id = current_user['id']
-        forms = [form for form in forms if form.get('created_by') == user_id]
+    # Get forms that user has access to (including form-level permissions)
+    accessible_forms = auth_manager.get_user_forms(forms)
     
-    return render_template('my_forms_modern.html', forms=forms, current_user=current_user)
+    return render_template('my_forms_modern.html', forms=accessible_forms, current_user=current_user)
 
 # Authentication Routes
 @app.route('/login')
@@ -174,7 +237,7 @@ def create_form():
     
     current_user = auth_manager.get_current_user()
     
-    # Create new form with initial question
+    # Create new form with initial question and form-level permissions
     new_form = {
         'name': form_name,
         'created_at': datetime.now().isoformat(),
@@ -182,6 +245,12 @@ def create_form():
         'status': 'draft',
         'created_by': current_user['id'],
         'created_by_name': current_user['name'],
+        'permissions': {
+            'admin': [current_user['id']],  # Form admin (creator)
+            'editor': [],  # Users who can edit the form
+            'viewer': []   # Users who can view submissions (beyond public link)
+        },
+        'invites': [],  # Pending invitations
         'submissions': [],
         'questions': [
             {
@@ -209,20 +278,176 @@ def edit_form(form_name):
     if not form:
         return redirect(url_for('index'))
     
-    # Check if user owns this form (unless admin)
+    # Check form-level permissions
     current_user = auth_manager.get_current_user()
-    if not auth_manager.has_role('admin') and form.get('created_by') != current_user['id']:
+    if not auth_manager.has_form_permission(form, 'edit'):
         return jsonify({'error': 'Access denied'}), 403
     
     return render_template('form_builder_modern.html', form=form, current_user=current_user)
 
+@app.route('/api/form/<form_name>/invite', methods=['POST'])
+@login_required
+def invite_user_to_form(form_name):
+    """Invite a user to collaborate on a form"""
+    forms = load_forms()
+    form_index = next((i for i, f in enumerate(forms) if f['name'] == form_name), None)
+    
+    if form_index is None:
+        return jsonify({'error': 'Form not found'}), 404
+    
+    form = forms[form_index]
+    
+    # Check if user is form admin
+    if not auth_manager.has_form_permission(form, 'admin'):
+        return jsonify({'error': 'Only form admins can invite users'}), 403
+    
+    data = request.get_json()
+    email = data.get('email', '').strip().lower()
+    role = data.get('role', 'viewer')  # editor, viewer
+    
+    if not email:
+        return jsonify({'error': 'Email is required'}), 400
+    
+    if role not in ['editor', 'viewer']:
+        return jsonify({'error': 'Invalid role'}), 400
+    
+    # Check if user exists
+    users = auth_manager.load_users()
+    invited_user = next((u for u in users if u['email'].lower() == email), None)
+    
+    if not invited_user:
+        return jsonify({'error': 'User not found. They must sign up first.'}), 404
+    
+    invited_user_id = invited_user['id']
+    current_user = auth_manager.get_current_user()
+    
+    # Check if user already has permission
+    permissions = form.get('permissions', {})
+    if (invited_user_id in permissions.get('admin', []) or
+        invited_user_id in permissions.get('editor', []) or
+        invited_user_id in permissions.get('viewer', [])):
+        return jsonify({'error': 'User already has access to this form'}), 400
+    
+    # Add user to form permissions
+    if role not in permissions:
+        permissions[role] = []
+    
+    permissions[role].append(invited_user_id)
+    forms[form_index]['permissions'] = permissions
+    forms[form_index]['updated_at'] = datetime.now().isoformat()
+    
+    save_forms(forms)
+    
+    # Send invitation email
+    form_url = f"{request.url_root}form/{form_name}"
+    email_sent = send_invitation_email(
+        to_email=email,
+        inviter_name=current_user['name'],
+        form_name=form_name,
+        role=role,
+        form_url=form_url
+    )
+    
+    email_status = " (email sent)" if email_sent else " (email failed)"
+    
+    return jsonify({
+        'message': f'User {email} invited as {role}{email_status}',
+        'user': {
+            'id': invited_user_id,
+            'name': invited_user['name'],
+            'email': invited_user['email'],
+            'role': role
+        }
+    })
+
+@app.route('/api/form/<form_name>/collaborators', methods=['GET'])
+@login_required
+def get_form_collaborators(form_name):
+    """Get list of form collaborators"""
+    forms = load_forms()
+    form = next((f for f in forms if f['name'] == form_name), None)
+    
+    if not form:
+        return jsonify({'error': 'Form not found'}), 404
+    
+    # Check if user has access to view collaborators
+    if not auth_manager.has_form_permission(form, 'edit'):
+        return jsonify({'error': 'Access denied'}), 403
+    
+    users = auth_manager.load_users()
+    users_by_id = {u['id']: u for u in users}
+    
+    permissions = form.get('permissions', {})
+    collaborators = []
+    
+    # Add all collaborators with their roles
+    for role in ['admin', 'editor', 'viewer']:
+        for user_id in permissions.get(role, []):
+            if user_id in users_by_id:
+                user = users_by_id[user_id]
+                collaborators.append({
+                    'id': user['id'],
+                    'name': user['name'],
+                    'email': user['email'],
+                    'role': role,
+                    'is_creator': user_id == form.get('created_by')
+                })
+    
+    return jsonify({'collaborators': collaborators})
+
+@app.route('/api/form/<form_name>/collaborators/<user_id>', methods=['DELETE'])
+@login_required
+def remove_form_collaborator(form_name, user_id):
+    """Remove a collaborator from a form"""
+    forms = load_forms()
+    form_index = next((i for i, f in enumerate(forms) if f['name'] == form_name), None)
+    
+    if form_index is None:
+        return jsonify({'error': 'Form not found'}), 404
+    
+    form = forms[form_index]
+    
+    # Check if user is form admin
+    if not auth_manager.has_form_permission(form, 'admin'):
+        return jsonify({'error': 'Only form admins can remove collaborators'}), 403
+    
+    # Don't allow removing the creator
+    if user_id == form.get('created_by'):
+        return jsonify({'error': 'Cannot remove form creator'}), 400
+    
+    # Remove user from all permission levels
+    permissions = form.get('permissions', {})
+    removed = False
+    
+    for role in ['admin', 'editor', 'viewer']:
+        if user_id in permissions.get(role, []):
+            permissions[role].remove(user_id)
+            removed = True
+    
+    if not removed:
+        return jsonify({'error': 'User not found in collaborators'}), 404
+    
+    forms[form_index]['permissions'] = permissions
+    forms[form_index]['updated_at'] = datetime.now().isoformat()
+    
+    save_forms(forms)
+    
+    return jsonify({'message': 'Collaborator removed successfully'})
+
 @app.route('/api/form/<form_name>/save', methods=['POST'])
+@login_required
 def save_form_data(form_name):
     forms = load_forms()
     form_index = next((i for i, f in enumerate(forms) if f['name'] == form_name), None)
     
     if form_index is None:
         return jsonify({'error': 'Form not found'}), 404
+    
+    form = forms[form_index]
+    
+    # Check form-level edit permission
+    if not auth_manager.has_form_permission(form, 'edit'):
+        return jsonify({'error': 'Access denied'}), 403
     
     data = request.get_json()
     forms[form_index]['questions'] = data.get('questions', [])
@@ -232,12 +457,19 @@ def save_form_data(form_name):
     return jsonify({'message': 'Form saved successfully'})
 
 @app.route('/api/form/<form_name>/question', methods=['POST'])
+@login_required
 def add_question(form_name):
     forms = load_forms()
     form_index = next((i for i, f in enumerate(forms) if f['name'] == form_name), None)
     
     if form_index is None:
         return jsonify({'error': 'Form not found'}), 404
+    
+    form = forms[form_index]
+    
+    # Check form-level edit permission
+    if not auth_manager.has_form_permission(form, 'edit'):
+        return jsonify({'error': 'Access denied'}), 403
     
     questions = forms[form_index]['questions']
     question_num = len(questions) + 1
@@ -256,12 +488,19 @@ def add_question(form_name):
     return jsonify({'question': new_question})
 
 @app.route('/api/form/<form_name>/publish', methods=['POST'])
+@login_required
 def publish_form(form_name):
     forms = load_forms()
     form_index = next((i for i, f in enumerate(forms) if f['name'] == form_name), None)
     
     if form_index is None:
         return jsonify({'error': 'Form not found'}), 404
+    
+    form = forms[form_index]
+    
+    # Check form-level admin permission (only admins can publish)
+    if not auth_manager.has_form_permission(form, 'admin'):
+        return jsonify({'error': 'Only form admins can publish forms'}), 403
     
     forms[form_index]['status'] = 'published'
     forms[form_index]['updated_at'] = datetime.now().isoformat()
@@ -271,12 +510,19 @@ def publish_form(form_name):
     return jsonify({'message': 'Form published successfully!', 'share_url': share_url})
 
 @app.route('/api/form/<form_name>/hide', methods=['POST'])
+@login_required
 def hide_form(form_name):
     forms = load_forms()
     form_index = next((i for i, f in enumerate(forms) if f['name'] == form_name), None)
     
     if form_index is None:
         return jsonify({'error': 'Form not found'}), 404
+    
+    form = forms[form_index]
+    
+    # Check form-level admin permission (only admins can hide)
+    if not auth_manager.has_form_permission(form, 'admin'):
+        return jsonify({'error': 'Only form admins can hide forms'}), 403
     
     forms[form_index]['status'] = 'draft'
     forms[form_index]['updated_at'] = datetime.now().isoformat()
@@ -322,12 +568,17 @@ def submit_form(form_name):
     return jsonify({'message': 'Form submitted successfully!', 'submission_id': submission['id']})
 
 @app.route('/form/<form_name>/submissions')
+@login_required
 def view_submissions(form_name):
     forms = load_forms()
     form = next((f for f in forms if f['name'] == form_name), None)
     
     if not form:
         return redirect(url_for('index'))
+    
+    # Check form-level view submissions permission
+    if not auth_manager.has_form_permission(form, 'view_submissions'):
+        return jsonify({'error': 'Access denied'}), 403
     
     return render_template('submissions.html', form=form)
 
@@ -342,10 +593,11 @@ def delete_form(form_name):
     if form_index is None:
         return jsonify({'error': 'Form not found'}), 404
     
-    # Check if user owns this form (unless admin)
-    current_user = auth_manager.get_current_user()
-    if not auth_manager.has_role('admin') and forms[form_index].get('created_by') != current_user['id']:
-        return jsonify({'error': 'Access denied'}), 403
+    form = forms[form_index]
+    
+    # Check form-level admin permission (only form admins can delete)
+    if not auth_manager.has_form_permission(form, 'admin'):
+        return jsonify({'error': 'Only form admins can delete forms'}), 403
     
     forms.pop(form_index)
     save_forms(forms)
@@ -374,9 +626,15 @@ def delete_submission(form_name, submission_id):
 
 
 @app.route('/my-forms')
+@login_required
 def my_forms():
+    current_user = auth_manager.get_current_user()
     forms = load_forms()
-    return render_template('my_forms.html', forms=forms)
+    
+    # Get forms that user has access to (including form-level permissions)
+    accessible_forms = auth_manager.get_user_forms(forms)
+    
+    return render_template('my_forms_modern.html', forms=accessible_forms, current_user=current_user)
 
 if __name__ == '__main__':
     app.run(host='127.0.0.1', port=5000, debug=True)

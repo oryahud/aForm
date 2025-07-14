@@ -138,8 +138,23 @@
                                 <div class="form-card-meta">
                                     <span class="form-card-date">{{ form.created_at[:10] }}</span>
                                     <span class="status-badge status-{{ form.status }}">{{ form.status|title }}</span>
+                                    <!-- Ownership indicator -->
+                                    {% if form.created_by == current_user.id %}
+                                        <span class="ownership-badge owner">
+                                            <i data-feather="user"></i>
+                                            Owner
+                                        </span>
+                                    {% else %}
+                                        <span class="ownership-badge shared">
+                                            <i data-feather="users"></i>
+                                            Shared
+                                        </span>
+                                    {% endif %}
                                 </div>
                                 <h3 class="form-card-title">{{ form.name }}</h3>
+                                {% if form.created_by != current_user.id %}
+                                    <p class="form-shared-info">Created by {{ form.created_by_name }}</p>
+                                {% endif %}
                             </div>
                             
                             <div class="form-card-content">
@@ -333,6 +348,40 @@
             height: 1px;
             background: var(--gray-200);
             margin: var(--spacing-1) 0;
+        }
+        
+        /* Ownership badges */
+        .ownership-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--spacing-1);
+            padding: var(--spacing-1) var(--spacing-2);
+            border-radius: var(--radius-sm);
+            font-size: 0.75rem;
+            font-weight: 500;
+            text-transform: uppercase;
+        }
+        
+        .ownership-badge.owner {
+            background: var(--success-100);
+            color: var(--success-700);
+        }
+        
+        .ownership-badge.shared {
+            background: var(--primary-100);
+            color: var(--primary-700);
+        }
+        
+        .ownership-badge i {
+            width: 12px;
+            height: 12px;
+        }
+        
+        .form-shared-info {
+            font-size: 0.875rem;
+            color: var(--gray-600);
+            margin: var(--spacing-1) 0 0 0;
+            font-style: italic;
         }
     </style>
 
