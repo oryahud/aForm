@@ -1,0 +1,24 @@
+name: Different Runners
+
+on: 
+  push:
+  workflow_dispatch:
+
+jobs:
+  ubuntu-20:
+    runs-on: ubuntu-20.04
+    steps:
+    - run: echo "Ubuntu 20.04 works"
+    - run: uname -a
+  
+  ubuntu-22:
+    runs-on: ubuntu-22.04  
+    steps:
+    - run: echo "Ubuntu 22.04 works"
+    - run: uname -a
+
+  ubuntu-latest:
+    runs-on: ubuntu-latest
+    steps:
+    - run: echo "Ubuntu latest works"
+    - run: uname -a

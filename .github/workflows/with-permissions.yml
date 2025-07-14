@@ -1,0 +1,21 @@
+name: With Permissions
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+    - name: Test basic
+      run: |
+        echo "Basic test"
+        date
+        echo "SUCCESS"
