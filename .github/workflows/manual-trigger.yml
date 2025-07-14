@@ -1,0 +1,19 @@
+name: Manual Trigger
+
+on:
+  workflow_dispatch:
+    inputs:
+      test_type:
+        description: 'Type of test to run'
+        required: false
+        default: 'basic'
+
+jobs:
+  manual:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Manual test
+      run: |
+        echo "Manual workflow triggered"
+        echo "Input: ${{ github.event.inputs.test_type }}"
+        echo "SUCCESS: Manual trigger works"
