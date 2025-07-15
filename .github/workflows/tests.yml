@@ -8,7 +8,7 @@ on:
 
 jobs:
   test:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04  # Explicitly use Ubuntu 22.04 to avoid 20.04 issues
     strategy:
       matrix:
         python-version: ['3.11']
