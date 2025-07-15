@@ -5,6 +5,30 @@ from datetime import datetime
 from pymongo.errors import DuplicateKeyError
 from database import db_manager
 import hashlib
+from bson import ObjectId
+
+def serialize_doc(doc):
+    """Convert MongoDB document to JSON-serializable format"""
+    if doc is None:
+        return None
+    
+    if isinstance(doc, list):
+        return [serialize_doc(item) for item in doc]
+    
+    if isinstance(doc, dict):
+        serialized = {}
+        for key, value in doc.items():
+            if isinstance(value, ObjectId):
+                serialized[key] = str(value)
+            elif isinstance(value, datetime):
+                serialized[key] = value.isoformat()
+            elif isinstance(value, (dict, list)):
+                serialized[key] = serialize_doc(value)
+            else:
+                serialized[key] = value
+        return serialized
+    
+    return doc
 
 class UserModel:
     """User model for MongoDB operations"""
@@ -52,17 +76,20 @@ class UserModel:
     @staticmethod
     def get_user_by_email(email):
         """Get user by email"""
-        return db_manager.get_users_collection().find_one({'email': email})
+        doc = db_manager.get_users_collection().find_one({'email': email})
+        return serialize_doc(doc)
     
     @staticmethod
     def get_user_by_id(user_id):
         """Get user by ID"""
-        return db_manager.get_users_collection().find_one({'id': user_id})
+        doc = db_manager.get_users_collection().find_one({'id': user_id})
+        return serialize_doc(doc)
     
     @staticmethod
     def get_all_users():
         """Get all users"""
-        return list(db_manager.get_users_collection().find())
+        docs = list(db_manager.get_users_collection().find())
+        return serialize_doc(docs)
     
     @staticmethod
     def delete_user(user_id):
@@ -105,12 +132,14 @@ class FormModel:
     @staticmethod
     def get_form_by_name(form_name):
         """Get form by name"""
-        return db_manager.get_forms_collection().find_one({'name': form_name})
+        doc = db_manager.get_forms_collection().find_one({'name': form_name})
+        return serialize_doc(doc)
     
     @staticmethod
     def get_all_forms():
         """Get all forms"""
-        return list(db_manager.get_forms_collection().find())
+        docs = list(db_manager.get_forms_collection().find())
+        return serialize_doc(docs)
     
     @staticmethod
     def get_user_forms(user_id):
@@ -122,7 +151,8 @@ class FormModel:
                 {'permissions.viewer': user_id}
             ]
         }
-        return list(db_manager.get_forms_collection().find(query))
+        docs = list(db_manager.get_forms_collection().find(query))
+        return serialize_doc(docs)
     
     @staticmethod
     def delete_form(form_name):
