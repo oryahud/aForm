@@ -5,7 +5,12 @@ from datetime import datetime
 from pymongo.errors import DuplicateKeyError
 from database import db_manager
 import hashlib
-from bson import ObjectId
+
+try:
+    from bson import ObjectId
+except ImportError:
+    # Fallback for testing environments without MongoDB
+    ObjectId = str
 
 def serialize_doc(doc):
     """Convert MongoDB document to JSON-serializable format"""
@@ -18,7 +23,7 @@ def serialize_doc(doc):
     if isinstance(doc, dict):
         serialized = {}
         for key, value in doc.items():
-            if isinstance(value, ObjectId):
+            if hasattr(value, '__class__') and value.__class__.__name__ == 'ObjectId':
                 serialized[key] = str(value)
             elif isinstance(value, datetime):
                 serialized[key] = value.isoformat()
