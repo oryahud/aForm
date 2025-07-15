@@ -2,15 +2,29 @@
 Database models for users and forms
 """
 from datetime import datetime
-from pymongo.errors import DuplicateKeyError
-from database import db_manager
 import hashlib
+import os
 
+# Make MongoDB imports optional for CI compatibility
 try:
+    from pymongo.errors import DuplicateKeyError
     from bson import ObjectId
+    MONGODB_AVAILABLE = True
 except ImportError:
     # Fallback for testing environments without MongoDB
+    class DuplicateKeyError(Exception):
+        pass
     ObjectId = str
+    MONGODB_AVAILABLE = False
+
+# Import database manager conditionally
+if MONGODB_AVAILABLE and not os.getenv('CI'):
+    try:
+        from database import db_manager
+    except Exception:
+        db_manager = None
+else:
+    db_manager = None
 
 def serialize_doc(doc):
     """Convert MongoDB document to JSON-serializable format"""
@@ -35,12 +49,18 @@ def serialize_doc(doc):
     
     return doc
 
+def _check_db_available():
+    """Check if database is available, raise error if not"""
+    if db_manager is None:
+        raise RuntimeError("Database not available in this environment")
+
 class UserModel:
     """User model for MongoDB operations"""
     
     @staticmethod
     def create_user(user_info):
         """Create a new user"""
+        _check_db_available()
         try:
             # Generate user ID from email
             user_id = hashlib.md5(user_info['email'].encode()).hexdigest()[:8]

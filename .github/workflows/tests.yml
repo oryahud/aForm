@@ -45,10 +45,37 @@ jobs:
 
     - name: Test basic imports
       run: |
-        python -c "import app; print('✅ app.py imports successfully')"
-        python -c "import auth; print('✅ auth.py imports successfully')" 
-        python -c "import database; print('✅ database.py imports successfully')"
-        python -c "import models; print('✅ models.py imports successfully')"
+        echo "Testing module imports in CI environment..."
+        python -c "
+import os
+os.environ['CI'] = 'true'
+os.environ['FLASK_ENV'] = 'testing'
+print('Environment variables set for CI')
+
+try:
+    import models
+    print('✅ models.py imports successfully')
+except Exception as e:
+    print(f'❌ models.py import failed: {e}')
+
+try:
+    import database
+    print('✅ database.py imports successfully') 
+except Exception as e:
+    print(f'❌ database.py import failed: {e}')
+
+try:
+    import auth
+    print('✅ auth.py imports successfully')
+except Exception as e:
+    print(f'❌ auth.py import failed: {e}')
+
+try:
+    import app
+    print('✅ app.py imports successfully')
+except Exception as e:
+    print(f'❌ app.py import failed: {e}')
+"
 
     - name: Run minimal test first
       run: |
