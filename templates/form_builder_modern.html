@@ -497,8 +497,19 @@
                         <div class="form-group">
                             <label class="form-label">Answer Type</label>
                             <select id="answerType" class="form-select" onchange="toggleAnswerOptions()">
-                                <option value="text">Text Input</option>
-                                <option value="radio">Multiple Choice</option>
+                                <option value="text">📝 Text Input</option>
+                                <option value="email">📧 Email Address</option>
+                                <option value="phone">📱 Phone Number</option>
+                                <option value="date">📅 Date</option>
+                                <option value="time">🕐 Time</option>
+                                <option value="url">🔗 Website URL</option>
+                                <option value="number">🔢 Number</option>
+                                <option value="rating">⭐ Rating Scale</option>
+                                <option value="radio">🔘 Multiple Choice</option>
+                                <option value="checkbox">☑️ Checkboxes</option>
+                                <option value="select">📋 Dropdown</option>
+                                <option value="textarea">📄 Long Text</option>
+                                <option value="file">📎 File Upload</option>
                             </select>
                         </div>
                         
@@ -541,6 +552,133 @@
                                 <div id="radioOptionsPreview">
                                     <!-- Preview will be rendered here -->
                                 </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Phone Number Options -->
+                        <div id="phoneGroup" class="form-group" style="display: none;">
+                            <label class="form-label">Country Code</label>
+                            <select id="countryCode" class="form-select">
+                                <option value="+1">🇺🇸 +1 (United States)</option>
+                                <option value="+44">🇬🇧 +44 (United Kingdom)</option>
+                                <option value="+33">🇫🇷 +33 (France)</option>
+                                <option value="+49">🇩🇪 +49 (Germany)</option>
+                                <option value="+81">🇯🇵 +81 (Japan)</option>
+                                <option value="+86">🇨🇳 +86 (China)</option>
+                                <option value="+91">🇮🇳 +91 (India)</option>
+                                <option value="+61">🇦🇺 +61 (Australia)</option>
+                                <option value="+55">🇧🇷 +55 (Brazil)</option>
+                                <option value="+7">🇷🇺 +7 (Russia)</option>
+                            </select>
+                            <div class="checkbox-group" style="margin-top: var(--spacing-3);">
+                                <input type="checkbox" id="allowExtension">
+                                <label for="allowExtension" class="form-label" style="margin: 0;">Allow extension</label>
+                            </div>
+                        </div>
+                        
+                        <!-- Date Options -->
+                        <div id="dateGroup" class="form-group" style="display: none;">
+                            <label class="form-label">Date Format</label>
+                            <select id="dateFormat" class="form-select">
+                                <option value="YYYY-MM-DD">YYYY-MM-DD (2024-12-31)</option>
+                                <option value="MM/DD/YYYY">MM/DD/YYYY (12/31/2024)</option>
+                                <option value="DD/MM/YYYY">DD/MM/YYYY (31/12/2024)</option>
+                            </select>
+                            <div style="margin-top: var(--spacing-3);">
+                                <label class="form-label">Minimum Date</label>
+                                <input type="date" id="minDate" class="form-input">
+                            </div>
+                            <div style="margin-top: var(--spacing-3);">
+                                <label class="form-label">Maximum Date</label>
+                                <input type="date" id="maxDate" class="form-input">
+                            </div>
+                        </div>
+                        
+                        <!-- Number Options -->
+                        <div id="numberGroup" class="form-group" style="display: none;">
+                            <div style="display: flex; gap: var(--spacing-3);">
+                                <div style="flex: 1;">
+                                    <label class="form-label">Minimum Value</label>
+                                    <input type="number" id="minValue" class="form-input" placeholder="No minimum">
+                                </div>
+                                <div style="flex: 1;">
+                                    <label class="form-label">Maximum Value</label>
+                                    <input type="number" id="maxValue" class="form-input" placeholder="No maximum">
+                                </div>
+                            </div>
+                            <div style="margin-top: var(--spacing-3);">
+                                <label class="form-label">Step Size</label>
+                                <input type="number" id="stepSize" class="form-input" placeholder="1" step="0.01">
+                            </div>
+                            <div class="checkbox-group" style="margin-top: var(--spacing-3);">
+                                <input type="checkbox" id="allowDecimals">
+                                <label for="allowDecimals" class="form-label" style="margin: 0;">Allow decimal numbers</label>
+                            </div>
+                        </div>
+                        
+                        <!-- Rating Options -->
+                        <div id="ratingGroup" class="form-group" style="display: none;">
+                            <div style="display: flex; gap: var(--spacing-3);">
+                                <div style="flex: 1;">
+                                    <label class="form-label">Scale</label>
+                                    <select id="ratingScale" class="form-select">
+                                        <option value="5">1 to 5</option>
+                                        <option value="10" selected>1 to 10</option>
+                                        <option value="100">1 to 100</option>
+                                    </select>
+                                </div>
+                                <div style="flex: 1;">
+                                    <label class="form-label">Style</label>
+                                    <select id="ratingStyle" class="form-select">
+                                        <option value="stars">⭐ Stars</option>
+                                        <option value="numbers">🔢 Numbers</option>
+                                        <option value="slider">📏 Slider</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div style="margin-top: var(--spacing-3);">
+                                <label class="form-label">Low Label</label>
+                                <input type="text" id="lowLabel" class="form-input" placeholder="Poor">
+                            </div>
+                            <div style="margin-top: var(--spacing-3);">
+                                <label class="form-label">High Label</label>
+                                <input type="text" id="highLabel" class="form-input" placeholder="Excellent">
+                            </div>
+                        </div>
+                        
+                        <!-- File Upload Options -->
+                        <div id="fileGroup" class="form-group" style="display: none;">
+                            <label class="form-label">Allowed File Types</label>
+                            <select id="fileTypes" class="form-select" multiple>
+                                <option value="image/*">📷 Images (JPG, PNG, GIF)</option>
+                                <option value="application/pdf">📄 PDF Documents</option>
+                                <option value=".doc,.docx">📝 Word Documents</option>
+                                <option value=".xls,.xlsx">📊 Excel Spreadsheets</option>
+                                <option value="text/*">📄 Text Files</option>
+                                <option value="audio/*">🎵 Audio Files</option>
+                                <option value="video/*">🎬 Video Files</option>
+                            </select>
+                            <div style="margin-top: var(--spacing-3);">
+                                <label class="form-label">Maximum File Size (MB)</label>
+                                <input type="number" id="maxFileSize" class="form-input" value="10" min="1" max="100">
+                            </div>
+                            <div class="checkbox-group" style="margin-top: var(--spacing-3);">
+                                <input type="checkbox" id="allowMultipleFiles">
+                                <label for="allowMultipleFiles" class="form-label" style="margin: 0;">Allow multiple files</label>
+                            </div>
+                        </div>
+                        
+                        <!-- Textarea Options -->
+                        <div id="textareaGroup" class="form-group" style="display: none;">
+                            <label class="form-label">Placeholder Text</label>
+                            <input type="text" id="textareaPlaceholder" class="form-input" placeholder="Enter your detailed response...">
+                            <div style="margin-top: var(--spacing-3);">
+                                <label class="form-label">Character Limit</label>
+                                <input type="number" id="charLimit" class="form-input" placeholder="No limit" min="1">
+                            </div>
+                            <div style="margin-top: var(--spacing-3);">
+                                <label class="form-label">Rows</label>
+                                <input type="number" id="textareaRows" class="form-input" value="4" min="2" max="20">
                             </div>
                         </div>
                         

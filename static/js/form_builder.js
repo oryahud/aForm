@@ -3,6 +3,26 @@ let currentQuestionIndex = 0;
 let hasUnsavedChanges = false;
 let lastSavedState = null;
 
+// Helper function to get question type display text
+function getQuestionTypeText(type) {
+    const typeMap = {
+        'text': '📝 Text Input',
+        'email': '📧 Email Address',
+        'phone': '📱 Phone Number',
+        'date': '📅 Date',
+        'time': '🕐 Time',
+        'url': '🔗 Website URL',
+        'number': '🔢 Number',
+        'rating': '⭐ Rating Scale',
+        'radio': '🔘 Multiple Choice',
+        'checkbox': '☑️ Checkboxes',
+        'select': '📋 Dropdown',
+        'textarea': '📄 Long Text',
+        'file': '📎 File Upload'
+    };
+    return typeMap[type] || '📝 Text Input';
+}
+
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', function() {
     // Initialize questions array if it doesn't exist (for old forms)
@@ -55,7 +75,7 @@ function renderQuestions() {
         questionItem.className = `question-item ${index === currentQuestionIndex ? 'active' : ''}`;
         questionItem.onclick = () => selectQuestion(index);
         
-        const typeText = question.type === 'text' ? 'Text Input' : 'Radio Button';
+        const typeText = getQuestionTypeText(question.type);
         const optionsText = question.options ? ` (${question.options.length} options)` : '';
         const multipleText = question.multiple ? ' - Multiple' : '';
         
@@ -184,23 +204,80 @@ function deleteCurrentQuestion() {
 
 function toggleAnswerOptions() {
     const answerType = document.getElementById('answerType').value;
-    const optionsGroup = document.getElementById('optionsGroup');
-    const textInputGroup = document.getElementById('textInputGroup');
     
-    if (answerType === 'text') {
-        optionsGroup.style.display = 'none';
-        textInputGroup.style.display = 'block';
-    } else if (answerType === 'radio') {
-        textInputGroup.style.display = 'none';
-        optionsGroup.style.display = 'block';
-        
-        // Initialize with default options if empty
-        const question = window.formData.questions[currentQuestionIndex];
-        if (!question.options || question.options.length === 0) {
-            question.options = ['Option 1', 'Option 2'];
-            renderOptions(question.options);
-        }
-        renderRadioPreview();
+    // Hide all option groups first
+    const allGroups = [
+        'optionsGroup', 'textInputGroup', 'phoneGroup', 'dateGroup', 
+        'numberGroup', 'ratingGroup', 'fileGroup', 'textareaGroup'
+    ];
+    
+    allGroups.forEach(groupId => {
+        const group = document.getElementById(groupId);
+        if (group) group.style.display = 'none';
+    });
+    
+    // Show relevant group based on answer type
+    switch(answerType) {
+        case 'text':
+            document.getElementById('textInputGroup').style.display = 'block';
+            break;
+            
+        case 'email':
+            // Email uses text input group for placeholder
+            document.getElementById('textInputGroup').style.display = 'block';
+            break;
+            
+        case 'phone':
+            document.getElementById('phoneGroup').style.display = 'block';
+            break;
+            
+        case 'date':
+            document.getElementById('dateGroup').style.display = 'block';
+            break;
+            
+        case 'time':
+            // Time doesn't need additional options for now
+            break;
+            
+        case 'url':
+            // URL uses text input group for placeholder
+            document.getElementById('textInputGroup').style.display = 'block';
+            break;
+            
+        case 'number':
+            document.getElementById('numberGroup').style.display = 'block';
+            break;
+            
+        case 'rating':
+            document.getElementById('ratingGroup').style.display = 'block';
+            break;
+            
+        case 'radio':
+        case 'checkbox':
+        case 'select':
+            document.getElementById('optionsGroup').style.display = 'block';
+            // Initialize with default options if empty
+            const question = window.formData.questions[currentQuestionIndex];
+            if (!question.options || question.options.length === 0) {
+                question.options = ['Option 1', 'Option 2'];
+                renderOptions(question.options);
+            }
+            renderRadioPreview();
+            break;
+            
+        case 'textarea':
+            document.getElementById('textareaGroup').style.display = 'block';
+            break;
+            
+        case 'file':
+            document.getElementById('fileGroup').style.display = 'block';
+            break;
+    }
+    
+    // Update the question type
+    if (window.formData.questions[currentQuestionIndex]) {
+        window.formData.questions[currentQuestionIndex].type = answerType;
+        checkForUnsavedChanges();
     }
 }
 
@@ -256,22 +333,172 @@ function renderRadioPreview() {
     const question = window.formData.questions[currentQuestionIndex];
     const preview = document.getElementById('radioOptionsPreview');
     
-    if (question.type !== 'radio' || !question.options) {
+    if (!['radio', 'checkbox', 'select'].includes(question.type) || !question.options) {
         preview.innerHTML = '';
         return;
     }
     
-    const inputType = question.multiple ? 'checkbox' : 'radio';
-    const inputName = question.multiple ? '' : 'preview-radio';
+    let previewHtml = '<h5>Preview:</h5>';
     
-    preview.innerHTML = `
-        <h5>Preview:</h5>
-        ${question.options.map((option, index) => `
+    if (question.type === 'select') {
+        previewHtml += `
+            <select class="form-input" ${question.multiple ? 'multiple' : ''}>
+                ${question.options.map(option => `<option value="${option}">${option}</option>`).join('')}
+            </select>
+        `;
+    } else {
+        const inputType = (question.type === 'checkbox' || question.multiple) ? 'checkbox' : 'radio';
+        const inputName = (inputType === 'radio') ? 'preview-radio' : '';
+        
+        previewHtml += question.options.map((option, index) => `
             <div class="radio-preview-item">
                 <input type="${inputType}" ${inputName ? `name="${inputName}"` : ''} id="preview-${index}">
                 <label for="preview-${index}" class="radio-preview-label">${option}</label>
             </div>
-        `).join('')}
+        `).join('');
+    }
+    
+    preview.innerHTML = previewHtml;
+}
+
+// Add validation functions for new input types
+function validateEmail(email) {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+}
+
+function validatePhone(phone, countryCode) {
+    // Basic phone validation - can be enhanced
+    const phoneRegex = /^[\d\s\-\(\)\+\.]+$/;
+    return phoneRegex.test(phone) && phone.replace(/\D/g, '').length >= 7;
+}
+
+function validateURL(url) {
+    try {
+        new URL(url);
+        return true;
+    } catch {
+        return false;
+    }
+}
+
+function formatRatingDisplay(value, scale, style) {
+    switch(style) {
+        case 'stars':
+            return '★'.repeat(Math.floor(value * 5 / scale)) + '☆'.repeat(5 - Math.floor(value * 5 / scale));
+        case 'slider':
+            return `${value} / ${scale}`;
+        default:
+            return value.toString();
+    }
+}
+
+// Enhanced preview generation for all question types
+function generateQuestionPreview(question, index) {
+    const required = question.required ? '<span style="color: red;">*</span>' : '';
+    let inputHtml = '';
+    
+    switch(question.type) {
+        case 'text':
+            inputHtml = `<input type="text" placeholder="${question.placeholder || 'Enter your answer...'}" class="form-input">`;
+            break;
+            
+        case 'email':
+            inputHtml = `<input type="email" placeholder="${question.placeholder || 'Enter your email address...'}" class="form-input">`;
+            break;
+            
+        case 'phone':
+            const countryCode = question.countryCode || '+1';
+            inputHtml = `
+                <div style="display: flex; gap: 8px;">
+                    <input type="text" value="${countryCode}" disabled style="width: 80px;" class="form-input">
+                    <input type="tel" placeholder="Phone number" class="form-input" style="flex: 1;">
+                    ${question.allowExtension ? '<input type="text" placeholder="Ext." style="width: 80px;" class="form-input">' : ''}
+                </div>
+            `;
+            break;
+            
+        case 'date':
+            inputHtml = `<input type="date" class="form-input" ${question.minDate ? `min="${question.minDate}"` : ''} ${question.maxDate ? `max="${question.maxDate}"` : ''}>`;
+            break;
+            
+        case 'time':
+            inputHtml = `<input type="time" class="form-input">`;
+            break;
+            
+        case 'url':
+            inputHtml = `<input type="url" placeholder="${question.placeholder || 'https://example.com'}" class="form-input">`;
+            break;
+            
+        case 'number':
+            inputHtml = `<input type="number" class="form-input" 
+                ${question.minValue ? `min="${question.minValue}"` : ''} 
+                ${question.maxValue ? `max="${question.maxValue}"` : ''}
+                ${question.stepSize ? `step="${question.stepSize}"` : ''}
+                placeholder="Enter a number">`;
+            break;
+            
+        case 'rating':
+            const scale = question.ratingScale || 10;
+            const style = question.ratingStyle || 'numbers';
+            if (style === 'stars') {
+                inputHtml = `<div class="rating-stars">
+                    ${Array.from({length: scale}, (_, i) => `<span class="star" data-value="${i+1}">☆</span>`).join('')}
+                </div>`;
+            } else if (style === 'slider') {
+                inputHtml = `<input type="range" min="1" max="${scale}" value="${Math.floor(scale/2)}" class="form-input">
+                    <div style="display: flex; justify-content: space-between; font-size: 0.8em; margin-top: 4px;">
+                        <span>${question.lowLabel || 'Poor'}</span>
+                        <span>${question.highLabel || 'Excellent'}</span>
+                    </div>`;
+            } else {
+                inputHtml = `<select class="form-input">
+                    ${Array.from({length: scale}, (_, i) => `<option value="${i+1}">${i+1}</option>`).join('')}
+                </select>`;
+            }
+            break;
+            
+        case 'textarea':
+            const rows = question.textareaRows || 4;
+            const charLimit = question.charLimit ? `maxlength="${question.charLimit}"` : '';
+            inputHtml = `<textarea rows="${rows}" ${charLimit} placeholder="${question.textareaPlaceholder || 'Enter your detailed response...'}" class="form-input"></textarea>`;
+            break;
+            
+        case 'file':
+            const accept = question.fileTypes ? question.fileTypes.join(',') : '';
+            const multiple = question.allowMultipleFiles ? 'multiple' : '';
+            inputHtml = `<input type="file" ${accept ? `accept="${accept}"` : ''} ${multiple} class="form-input">
+                <small style="color: #666;">Max size: ${question.maxFileSize || 10}MB</small>`;
+            break;
+            
+        case 'radio':
+        case 'checkbox':
+        case 'select':
+            if (question.type === 'select') {
+                inputHtml = `<select class="form-input" ${question.multiple ? 'multiple' : ''}>
+                    ${(question.options || []).map(option => `<option value="${option}">${option}</option>`).join('')}
+                </select>`;
+            } else {
+                const inputType = (question.type === 'checkbox' || question.multiple) ? 'checkbox' : 'radio';
+                const inputName = inputType === 'radio' ? `question_${index}` : '';
+                inputHtml = (question.options || []).map((option, optIndex) => `
+                    <div class="option-item">
+                        <input type="${inputType}" ${inputName ? `name="${inputName}"` : ''} id="q${index}_${optIndex}" value="${option}">
+                        <label for="q${index}_${optIndex}">${option}</label>
+                    </div>
+                `).join('');
+            }
+            break;
+            
+        default:
+            inputHtml = `<input type="text" placeholder="Enter your answer..." class="form-input">`;
+    }
+    
+    return `
+        <div class="question-preview">
+            <label class="question-label">${question.title}${required}</label>
+            <div class="question-input">${inputHtml}</div>
+        </div>
     `;
 }
 

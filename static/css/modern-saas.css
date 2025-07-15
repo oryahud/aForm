@@ -489,3 +489,188 @@ body {
     font-size: 1.5rem;
   }
 }
+
+/* Enhanced Question Type Styles */
+
+/* Rating Stars */
+.rating-stars {
+  display: flex;
+  gap: 4px;
+  font-size: 1.5rem;
+  user-select: none;
+}
+
+.rating-stars .star {
+  cursor: pointer;
+  transition: color 0.2s ease;
+  color: var(--gray-300);
+}
+
+.rating-stars .star:hover,
+.rating-stars .star.active {
+  color: #fbbf24;
+}
+
+/* Phone Number Input */
+.phone-input-group {
+  display: flex;
+  gap: var(--spacing-2);
+  align-items: center;
+}
+
+.phone-input-group .country-code {
+  width: 80px;
+  background: var(--gray-100);
+  border: 1px solid var(--gray-300);
+  padding: var(--spacing-2);
+  border-radius: var(--radius-md);
+  text-align: center;
+}
+
+.phone-input-group .phone-number {
+  flex: 1;
+}
+
+.phone-input-group .extension {
+  width: 80px;
+}
+
+/* File Upload Styling */
+.file-upload-area {
+  border: 2px dashed var(--gray-300);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-8);
+  text-align: center;
+  background: var(--gray-50);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.file-upload-area:hover {
+  border-color: var(--primary-500);
+  background: var(--primary-50);
+}
+
+.file-upload-area.drag-over {
+  border-color: var(--primary-500);
+  background: var(--primary-50);
+}
+
+/* Rating Slider */
+.rating-slider-container {
+  margin: var(--spacing-4) 0;
+}
+
+.rating-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.875rem;
+  color: var(--gray-600);
+  margin-top: var(--spacing-2);
+}
+
+/* Option Items for Radio/Checkbox */
+.option-item {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  margin: var(--spacing-2) 0;
+  padding: var(--spacing-2);
+  border-radius: var(--radius-md);
+  transition: background 0.2s ease;
+}
+
+.option-item:hover {
+  background: var(--gray-50);
+}
+
+.option-item input[type="radio"],
+.option-item input[type="checkbox"] {
+  margin: 0;
+}
+
+.option-item label {
+  margin: 0;
+  cursor: pointer;
+  flex: 1;
+}
+
+/* Question Preview Styles */
+.question-preview {
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-6);
+  margin: var(--spacing-4) 0;
+  background: white;
+}
+
+.question-label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: var(--spacing-3);
+  color: var(--gray-900);
+}
+
+.question-input {
+  width: 100%;
+}
+
+/* Form Input Enhancements */
+.form-input[type="range"] {
+  width: 100%;
+  height: 6px;
+  background: var(--gray-200);
+  border-radius: 3px;
+  outline: none;
+  padding: 0;
+}
+
+.form-input[type="range"]::-webkit-slider-thumb {
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  background: var(--primary-500);
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.form-input[type="range"]::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  background: var(--primary-500);
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+}
+
+/* Multi-select styling */
+.form-select[multiple] {
+  height: auto;
+  min-height: 120px;
+}
+
+/* Validation feedback */
+.validation-error {
+  color: var(--error-500);
+  font-size: 0.875rem;
+  margin-top: var(--spacing-1);
+}
+
+.validation-success {
+  color: var(--success-500);
+  font-size: 0.875rem;
+  margin-top: var(--spacing-1);
+}
+
+/* Question type icons in dropdown */
+.form-select option {
+  padding: var(--spacing-2);
+}
+
+/* Textarea character counter */
+.char-counter {
+  text-align: right;
+  font-size: 0.75rem;
+  color: var(--gray-500);
+  margin-top: var(--spacing-1);
+}
