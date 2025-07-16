@@ -6,6 +6,72 @@ document.addEventListener('DOMContentLoaded', function() {
         return;
     }
     
+    // Initialize interactive elements
+    initializeRatingStars();
+    initializeCharacterCounters();
+    
+    // Rating stars functionality
+    function initializeRatingStars() {
+        const ratingStars = document.querySelectorAll('.rating-stars');
+        ratingStars.forEach(ratingGroup => {
+            const stars = ratingGroup.querySelectorAll('.star');
+            const hiddenInput = ratingGroup.parentElement.querySelector('input[type="hidden"]');
+            
+            stars.forEach((star, index) => {
+                star.addEventListener('click', function() {
+                    const value = this.dataset.value;
+                    hiddenInput.value = value;
+                    
+                    // Update star display
+                    stars.forEach((s, i) => {
+                        if (i < value) {
+                            s.textContent = '★';
+                            s.classList.add('active');
+                        } else {
+                            s.textContent = '☆';
+                            s.classList.remove('active');
+                        }
+                    });
+                });
+                
+                star.addEventListener('mouseenter', function() {
+                    const value = this.dataset.value;
+                    stars.forEach((s, i) => {
+                        if (i < value) {
+                            s.textContent = '★';
+                        } else {
+                            s.textContent = '☆';
+                        }
+                    });
+                });
+                
+                star.addEventListener('mouseleave', function() {
+                    const currentValue = hiddenInput.value;
+                    stars.forEach((s, i) => {
+                        if (i < currentValue) {
+                            s.textContent = '★';
+                        } else {
+                            s.textContent = '☆';
+                        }
+                    });
+                });
+            });
+        });
+    }
+    
+    // Character counter functionality
+    function initializeCharacterCounters() {
+        const textareas = document.querySelectorAll('textarea[maxlength]');
+        textareas.forEach(textarea => {
+            const counter = document.getElementById(textarea.id + '_counter');
+            if (counter) {
+                textarea.addEventListener('input', function() {
+                    counter.textContent = this.value.length;
+                });
+            }
+        });
+    }
+    
     form.addEventListener('submit', async function(e) {
         e.preventDefault();
         console.log('Form submitted, processing...');
@@ -24,17 +90,71 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // Process each question
             window.formData.questions.forEach(question => {
-                if (question.type === 'text') {
-                    responses[question.id] = formData.get(question.id) || '';
-                } else if (question.type === 'radio') {
-                    if (question.multiple) {
-                        // Multiple selection (checkboxes)
-                        const values = formData.getAll(question.id + '[]');
-                        responses[question.id] = values;
-                    } else {
-                        // Single selection (radio)
+                switch(question.type) {
+                    case 'text':
+                    case 'email':
+                    case 'url':
+                    case 'date':
+                    case 'time':
+                    case 'number':
+                    case 'textarea':
                         responses[question.id] = formData.get(question.id) || '';
-                    }
+                        break;
+                        
+                    case 'phone':
+                        responses[question.id] = formData.get(question.id) || '';
+                        // Include extension if present
+                        const ext = formData.get(question.id + '_ext');
+                        if (ext) {
+                            responses[question.id + '_ext'] = ext;
+                        }
+                        break;
+                        
+                    case 'rating':
+                        responses[question.id] = formData.get(question.id) || '';
+                        break;
+                        
+                    case 'file':
+                        // File handling - get file info
+                        const fileInput = form.querySelector(`input[name="${question.id}"]`);
+                        if (fileInput && fileInput.files.length > 0) {
+                            responses[question.id] = Array.from(fileInput.files).map(file => ({
+                                name: file.name,
+                                size: file.size,
+                                type: file.type
+                            }));
+                        } else {
+                            responses[question.id] = [];
+                        }
+                        break;
+                        
+                    case 'select':
+                        if (question.multiple) {
+                            const values = formData.getAll(question.id + '[]');
+                            responses[question.id] = values;
+                        } else {
+                            responses[question.id] = formData.get(question.id) || '';
+                        }
+                        break;
+                        
+                    case 'checkbox':
+                        const checkboxValues = formData.getAll(question.id + '[]');
+                        responses[question.id] = checkboxValues;
+                        break;
+                        
+                    case 'radio':
+                        if (question.multiple) {
+                            // Multiple selection (checkboxes)
+                            const values = formData.getAll(question.id + '[]');
+                            responses[question.id] = values;
+                        } else {
+                            // Single selection (radio)
+                            responses[question.id] = formData.get(question.id) || '';
+                        }
+                        break;
+                        
+                    default:
+                        responses[question.id] = formData.get(question.id) || '';
                 }
             });
             

@@ -175,6 +175,93 @@
             line-height: 1.5;
         }
         
+        /* Phone input styling */
+        .phone-input-group {
+            display: flex;
+            gap: var(--spacing-3);
+            align-items: center;
+        }
+        
+        .phone-input-group .country-code {
+            width: 80px;
+            text-align: center;
+            background: var(--gray-200);
+            color: var(--gray-900);
+            font-weight: 600;
+        }
+        
+        .phone-input-group .phone-number {
+            flex: 1;
+        }
+        
+        .phone-input-group .extension {
+            width: 80px;
+        }
+        
+        /* Rating stars styling */
+        .rating-stars {
+            display: flex;
+            gap: 6px;
+            font-size: 2rem;
+            user-select: none;
+            margin: var(--spacing-3) 0;
+        }
+        
+        .rating-stars .star {
+            cursor: pointer;
+            transition: color 0.2s ease;
+            color: var(--gray-300);
+        }
+        
+        .rating-stars .star:hover,
+        .rating-stars .star.active {
+            color: var(--warning-500);
+        }
+        
+        /* Rating slider styling */
+        .rating-slider-container {
+            margin: var(--spacing-4) 0;
+        }
+        
+        .rating-slider {
+            width: 100%;
+            height: 8px;
+            border-radius: var(--radius-md);
+            background: var(--gray-200);
+            outline: none;
+            margin-bottom: var(--spacing-3);
+        }
+        
+        .rating-labels {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.875rem;
+            color: var(--gray-600);
+        }
+        
+        /* Character counter */
+        .char-counter {
+            text-align: right;
+            font-size: 0.875rem;
+            color: var(--gray-600);
+            margin-top: var(--spacing-2);
+        }
+        
+        /* File info */
+        .file-info {
+            display: block;
+            margin-top: var(--spacing-2);
+            font-size: 0.875rem;
+            color: var(--gray-600);
+        }
+        
+        /* Checkbox group styling */
+        .checkbox-group {
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-3);
+        }
+        
         .form-actions {
             text-align: center;
             margin-top: var(--spacing-12);
@@ -360,6 +447,172 @@
                                 class="text-input"
                                 {% if question.required %}required{% endif %}
                             >
+                        {% elif question.type == 'email' %}
+                            <input 
+                                type="email" 
+                                name="{{ question.id }}" 
+                                id="{{ question.id }}"
+                                placeholder="{{ question.placeholder or 'Enter your email address...' }}"
+                                class="text-input"
+                                {% if question.required %}required{% endif %}
+                            >
+                        {% elif question.type == 'phone' %}
+                            <div class="phone-input-group">
+                                <input 
+                                    type="text" 
+                                    value="{{ question.countryCode or '+1' }}" 
+                                    disabled 
+                                    class="country-code"
+                                >
+                                <input 
+                                    type="tel" 
+                                    name="{{ question.id }}" 
+                                    id="{{ question.id }}"
+                                    placeholder="Phone number"
+                                    class="text-input phone-number"
+                                    {% if question.required %}required{% endif %}
+                                >
+                                {% if question.allowExtension %}
+                                <input 
+                                    type="text" 
+                                    name="{{ question.id }}_ext" 
+                                    id="{{ question.id }}_ext"
+                                    placeholder="Ext."
+                                    class="text-input extension"
+                                >
+                                {% endif %}
+                            </div>
+                        {% elif question.type == 'date' %}
+                            <input 
+                                type="date" 
+                                name="{{ question.id }}" 
+                                id="{{ question.id }}"
+                                {% if question.minDate %}min="{{ question.minDate }}"{% endif %}
+                                {% if question.maxDate %}max="{{ question.maxDate }}"{% endif %}
+                                class="text-input"
+                                {% if question.required %}required{% endif %}
+                            >
+                        {% elif question.type == 'time' %}
+                            <input 
+                                type="time" 
+                                name="{{ question.id }}" 
+                                id="{{ question.id }}"
+                                class="text-input"
+                                {% if question.required %}required{% endif %}
+                            >
+                        {% elif question.type == 'url' %}
+                            <input 
+                                type="url" 
+                                name="{{ question.id }}" 
+                                id="{{ question.id }}"
+                                placeholder="{{ question.placeholder or 'https://example.com' }}"
+                                class="text-input"
+                                {% if question.required %}required{% endif %}
+                            >
+                        {% elif question.type == 'number' %}
+                            <input 
+                                type="number" 
+                                name="{{ question.id }}" 
+                                id="{{ question.id }}"
+                                {% if question.minValue %}min="{{ question.minValue }}"{% endif %}
+                                {% if question.maxValue %}max="{{ question.maxValue }}"{% endif %}
+                                {% if question.stepSize %}step="{{ question.stepSize }}"{% endif %}
+                                placeholder="Enter a number"
+                                class="text-input"
+                                {% if question.required %}required{% endif %}
+                            >
+                        {% elif question.type == 'rating' %}
+                            {% set scale = question.ratingScale or 10 %}
+                            {% set style = question.ratingStyle or 'numbers' %}
+                            {% if style == 'stars' %}
+                                <div class="rating-stars" data-scale="{{ scale }}">
+                                    {% for i in range(1, scale + 1) %}
+                                    <span class="star" data-value="{{ i }}">☆</span>
+                                    {% endfor %}
+                                </div>
+                                <input type="hidden" name="{{ question.id }}" id="{{ question.id }}" {% if question.required %}required{% endif %}>
+                            {% elif style == 'slider' %}
+                                <div class="rating-slider-container">
+                                    <input 
+                                        type="range" 
+                                        name="{{ question.id }}" 
+                                        id="{{ question.id }}"
+                                        min="1" 
+                                        max="{{ scale }}" 
+                                        value="{{ (scale / 2) | round }}"
+                                        class="rating-slider"
+                                        {% if question.required %}required{% endif %}
+                                    >
+                                    <div class="rating-labels">
+                                        <span>{{ question.lowLabel or 'Poor' }}</span>
+                                        <span>{{ question.highLabel or 'Excellent' }}</span>
+                                    </div>
+                                </div>
+                            {% else %}
+                                <select name="{{ question.id }}" id="{{ question.id }}" class="text-input" {% if question.required %}required{% endif %}>
+                                    <option value="">Select rating...</option>
+                                    {% for i in range(1, scale + 1) %}
+                                    <option value="{{ i }}">{{ i }}</option>
+                                    {% endfor %}
+                                </select>
+                            {% endif %}
+                        {% elif question.type == 'textarea' %}
+                            <textarea 
+                                name="{{ question.id }}" 
+                                id="{{ question.id }}"
+                                rows="{{ question.textareaRows or 4 }}"
+                                {% if question.charLimit %}maxlength="{{ question.charLimit }}"{% endif %}
+                                placeholder="{{ question.textareaPlaceholder or 'Enter your detailed response...' }}"
+                                class="text-input"
+                                {% if question.required %}required{% endif %}
+                            ></textarea>
+                            {% if question.charLimit %}
+                            <div class="char-counter">
+                                <span id="{{ question.id }}_counter">0</span> / {{ question.charLimit }}
+                            </div>
+                            {% endif %}
+                        {% elif question.type == 'file' %}
+                            <input 
+                                type="file" 
+                                name="{{ question.id }}" 
+                                id="{{ question.id }}"
+                                {% if question.fileTypes %}accept="{{ question.fileTypes | join(',') }}"{% endif %}
+                                {% if question.allowMultipleFiles %}multiple{% endif %}
+                                class="text-input"
+                                {% if question.required %}required{% endif %}
+                            >
+                            {% if question.maxFileSize %}
+                            <small class="file-info">Max size: {{ question.maxFileSize }}MB</small>
+                            {% endif %}
+                        {% elif question.type == 'select' %}
+                            <select 
+                                name="{{ question.id }}{{ '[]' if question.multiple else '' }}" 
+                                id="{{ question.id }}"
+                                {% if question.multiple %}multiple{% endif %}
+                                class="text-input"
+                                {% if question.required %}required{% endif %}
+                            >
+                                {% if not question.multiple %}
+                                <option value="">Select an option...</option>
+                                {% endif %}
+                                {% for option in question.options %}
+                                <option value="{{ option }}">{{ option }}</option>
+                                {% endfor %}
+                            </select>
+                        {% elif question.type == 'checkbox' %}
+                            <div class="checkbox-group">
+                                {% for option in question.options %}
+                                <div class="radio-option">
+                                    <input 
+                                        type="checkbox" 
+                                        name="{{ question.id }}[]" 
+                                        id="{{ question.id }}_{{ loop.index0 }}"
+                                        value="{{ option }}"
+                                    >
+                                    <label for="{{ question.id }}_{{ loop.index0 }}">{{ option }}</label>
+                                </div>
+                                {% endfor %}
+                            </div>
                         {% elif question.type == 'radio' %}
                             <div class="radio-group">
                                 {% for option in question.options %}

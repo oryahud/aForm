@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ form.name }} - aForm</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/modern-saas.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/public_form.css') }}">
 </head>
 <body>
@@ -36,6 +36,172 @@
                             {% if question.required %}required{% endif %}
                             class="text-input"
                         >
+                    {% elif question.type == 'email' %}
+                        <input 
+                            type="email" 
+                            name="{{ question.id }}" 
+                            id="{{ question.id }}"
+                            placeholder="{{ question.placeholder or 'Enter your email address...' }}"
+                            {% if question.required %}required{% endif %}
+                            class="text-input"
+                        >
+                    {% elif question.type == 'phone' %}
+                        <div class="phone-input-group">
+                            <input 
+                                type="text" 
+                                value="{{ question.countryCode or '+1' }}" 
+                                disabled 
+                                class="country-code"
+                            >
+                            <input 
+                                type="tel" 
+                                name="{{ question.id }}" 
+                                id="{{ question.id }}"
+                                placeholder="Phone number"
+                                {% if question.required %}required{% endif %}
+                                class="phone-number"
+                            >
+                            {% if question.allowExtension %}
+                            <input 
+                                type="text" 
+                                name="{{ question.id }}_ext" 
+                                id="{{ question.id }}_ext"
+                                placeholder="Ext."
+                                class="extension"
+                            >
+                            {% endif %}
+                        </div>
+                    {% elif question.type == 'date' %}
+                        <input 
+                            type="date" 
+                            name="{{ question.id }}" 
+                            id="{{ question.id }}"
+                            {% if question.minDate %}min="{{ question.minDate }}"{% endif %}
+                            {% if question.maxDate %}max="{{ question.maxDate }}"{% endif %}
+                            {% if question.required %}required{% endif %}
+                            class="date-input"
+                        >
+                    {% elif question.type == 'time' %}
+                        <input 
+                            type="time" 
+                            name="{{ question.id }}" 
+                            id="{{ question.id }}"
+                            {% if question.required %}required{% endif %}
+                            class="time-input"
+                        >
+                    {% elif question.type == 'url' %}
+                        <input 
+                            type="url" 
+                            name="{{ question.id }}" 
+                            id="{{ question.id }}"
+                            placeholder="{{ question.placeholder or 'https://example.com' }}"
+                            {% if question.required %}required{% endif %}
+                            class="url-input"
+                        >
+                    {% elif question.type == 'number' %}
+                        <input 
+                            type="number" 
+                            name="{{ question.id }}" 
+                            id="{{ question.id }}"
+                            {% if question.minValue %}min="{{ question.minValue }}"{% endif %}
+                            {% if question.maxValue %}max="{{ question.maxValue }}"{% endif %}
+                            {% if question.stepSize %}step="{{ question.stepSize }}"{% endif %}
+                            placeholder="Enter a number"
+                            {% if question.required %}required{% endif %}
+                            class="number-input"
+                        >
+                    {% elif question.type == 'rating' %}
+                        {% set scale = question.ratingScale or 10 %}
+                        {% set style = question.ratingStyle or 'numbers' %}
+                        {% if style == 'stars' %}
+                            <div class="rating-stars" data-scale="{{ scale }}">
+                                {% for i in range(1, scale + 1) %}
+                                <span class="star" data-value="{{ i }}">☆</span>
+                                {% endfor %}
+                            </div>
+                            <input type="hidden" name="{{ question.id }}" id="{{ question.id }}" {% if question.required %}required{% endif %}>
+                        {% elif style == 'slider' %}
+                            <div class="rating-slider-container">
+                                <input 
+                                    type="range" 
+                                    name="{{ question.id }}" 
+                                    id="{{ question.id }}"
+                                    min="1" 
+                                    max="{{ scale }}" 
+                                    value="{{ (scale / 2) | round }}"
+                                    {% if question.required %}required{% endif %}
+                                    class="rating-slider"
+                                >
+                                <div class="rating-labels">
+                                    <span>{{ question.lowLabel or 'Poor' }}</span>
+                                    <span>{{ question.highLabel or 'Excellent' }}</span>
+                                </div>
+                            </div>
+                        {% else %}
+                            <select name="{{ question.id }}" id="{{ question.id }}" {% if question.required %}required{% endif %} class="rating-select">
+                                <option value="">Select rating...</option>
+                                {% for i in range(1, scale + 1) %}
+                                <option value="{{ i }}">{{ i }}</option>
+                                {% endfor %}
+                            </select>
+                        {% endif %}
+                    {% elif question.type == 'textarea' %}
+                        <textarea 
+                            name="{{ question.id }}" 
+                            id="{{ question.id }}"
+                            rows="{{ question.textareaRows or 4 }}"
+                            {% if question.charLimit %}maxlength="{{ question.charLimit }}"{% endif %}
+                            placeholder="{{ question.textareaPlaceholder or 'Enter your detailed response...' }}"
+                            {% if question.required %}required{% endif %}
+                            class="textarea-input"
+                        ></textarea>
+                        {% if question.charLimit %}
+                        <div class="char-counter">
+                            <span id="{{ question.id }}_counter">0</span> / {{ question.charLimit }}
+                        </div>
+                        {% endif %}
+                    {% elif question.type == 'file' %}
+                        <input 
+                            type="file" 
+                            name="{{ question.id }}" 
+                            id="{{ question.id }}"
+                            {% if question.fileTypes %}accept="{{ question.fileTypes | join(',') }}"{% endif %}
+                            {% if question.allowMultipleFiles %}multiple{% endif %}
+                            {% if question.required %}required{% endif %}
+                            class="file-input"
+                        >
+                        {% if question.maxFileSize %}
+                        <small class="file-info">Max size: {{ question.maxFileSize }}MB</small>
+                        {% endif %}
+                    {% elif question.type == 'select' %}
+                        <select 
+                            name="{{ question.id }}{{ '[]' if question.multiple else '' }}" 
+                            id="{{ question.id }}"
+                            {% if question.multiple %}multiple{% endif %}
+                            {% if question.required %}required{% endif %}
+                            class="select-input"
+                        >
+                            {% if not question.multiple %}
+                            <option value="">Select an option...</option>
+                            {% endif %}
+                            {% for option in question.options %}
+                            <option value="{{ option }}">{{ option }}</option>
+                            {% endfor %}
+                        </select>
+                    {% elif question.type == 'checkbox' %}
+                        <div class="checkbox-group">
+                            {% for option in question.options %}
+                            <div class="checkbox-option">
+                                <input 
+                                    type="checkbox" 
+                                    name="{{ question.id }}[]" 
+                                    id="{{ question.id }}_{{ loop.index0 }}"
+                                    value="{{ option }}"
+                                >
+                                <label for="{{ question.id }}_{{ loop.index0 }}">{{ option }}</label>
+                            </div>
+                            {% endfor %}
+                        </div>
                     {% elif question.type == 'radio' %}
                         <div class="radio-group">
                             {% for option in question.options %}
