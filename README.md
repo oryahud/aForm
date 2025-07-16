@@ -18,7 +18,12 @@ pip install -r requirements.txt
 3. Set up environment variables:
 Create a `.env` file in the root directory:
 ```env
-SECRET_KEY=your_secret_key_here
+# Flask Configuration
+SECRET_KEY=your_flask_secret_key_here
+FLASK_ENV=development
+APP_URL=http://localhost:5000
+
+# Google OAuth
 GOOGLE_CLIENT_ID=your_google_client_id
 GOOGLE_CLIENT_SECRET=your_google_client_secret
 
@@ -34,6 +39,11 @@ MAIL_USERNAME=your_email@gmail.com
 MAIL_PASSWORD=your_app_password
 MAIL_DEFAULT_SENDER=your_email@gmail.com
 ```
+
+   **Generate your Flask SECRET_KEY:**
+   ```bash
+   python -c "import secrets; print(secrets.token_hex(32))"
+   ```
 
 4. Set up MongoDB:
    - Install MongoDB locally or use MongoDB Atlas (cloud)
