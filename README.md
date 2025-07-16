@@ -1,6 +1,23 @@
 # aForm
 
-A modern, collaborative form builder application with Google OAuth authentication and real-time collaboration features.
+A modern, collaborative form builder application with comprehensive question types, Google OAuth authentication, and real-time collaboration features. Built with Flask, MongoDB, and modern web technologies.
+
+## ✨ Quick Start
+
+```bash
+# Clone and install
+git clone <repository-url>
+cd aForm
+pip install -r requirements.txt
+
+# Set up environment variables (see Installation section)
+cp .env.example .env
+
+# Start MongoDB and run the app
+python main.py
+```
+
+Visit `http://localhost:5000` and start building forms!
 
 ## Features
 
@@ -11,11 +28,24 @@ A modern, collaborative form builder application with Google OAuth authenticatio
 - Session management with secure secrets
 
 ### 📝 Form Builder
-- Drag-and-drop form creation interface
-- Multiple question types (text, email, number, select, radio, checkbox, textarea)
-- Real-time form preview
+- Intuitive form creation interface with modern design
+- **13 comprehensive question types** with full validation:
+  - 📝 **Text Input** - Single-line text with custom placeholders
+  - 📧 **Email Address** - Email validation with HTML5 support
+  - 📱 **Phone Number** - International format with country codes and extensions
+  - 📅 **Date Picker** - Date selection with min/max constraints
+  - 🕐 **Time Picker** - Time selection with 24-hour format
+  - 🔗 **Website URL** - URL validation with protocol checking
+  - 🔢 **Number Input** - Numeric input with range validation and step controls
+  - ⭐ **Rating Scale** - Interactive star ratings, sliders, or dropdown scales
+  - 🔘 **Multiple Choice** - Single-select radio buttons with custom options
+  - ☑️ **Checkboxes** - Multi-select checkboxes for multiple answers
+  - 📋 **Dropdown** - Select menus with single or multiple selection
+  - 📄 **Long Text** - Multi-line textarea with character limits and counters
+  - 📎 **File Upload** - File attachments with type restrictions and size limits
+- Real-time form preview with interactive elements
 - Auto-save functionality with unsaved changes detection
-- Modern, responsive UI design
+- Modern, responsive UI design with SaaS-style components
 
 ### 👥 Collaboration
 - Invite users via email to collaborate on forms
@@ -26,12 +56,23 @@ A modern, collaborative form builder application with Google OAuth authenticatio
 - Email invitations with personalized messages
 - Collaborator management interface
 
+### ⚙️ Advanced Question Features
+- **Phone Numbers**: Country code selection, extension support, format validation
+- **Date/Time**: Min/max date constraints, custom date formats, time validation
+- **Rating Systems**: Star ratings (1-10 scale), slider controls, dropdown ratings
+- **File Uploads**: Multiple file types (PDF, DOC, images), size limits, type restrictions
+- **Text Areas**: Character limits with real-time counters, custom row heights
+- **Number Inputs**: Min/max values, step controls, decimal support
+- **Validation**: Client-side and server-side validation for all question types
+- **Accessibility**: Full keyboard navigation, screen reader support, ARIA labels
+
 ### 📊 Form Management
 - Public form sharing with unique URLs
-- Form status management (draft/published)
-- Submission tracking and viewing
+- Form status management (draft/published)  
+- Submission tracking and viewing with support for all question types
 - Form deletion with proper permissions
 - Bulk operations and filtering
+- Export submissions in various formats
 
 ### 📧 Email Integration
 - Automated invitation emails via Flask-Mail
@@ -102,17 +143,30 @@ aForm/
 ├── app.py                    # Main Flask application
 ├── auth.py                  # Authentication and authorization logic
 ├── database.py              # MongoDB connection and configuration
-├── models.py                # Database models for users and forms
+├── models.py                # Database models with serialization
 ├── main.py                  # Application entry point
 ├── requirements.txt         # Python dependencies
+├── requirements-ci.txt      # CI/CD dependencies (MongoDB-free)
 ├── static/                 # Static assets
-│   ├── css/               # Stylesheets
-│   └── js/                # JavaScript files
-└── templates/             # HTML templates
-    ├── form_builder_modern.html
-    ├── my_forms_modern.html
-    ├── public_form_modern.html
-    └── ...
+│   ├── css/               # Modern SaaS-style CSS
+│   │   ├── modern-saas.css
+│   │   └── public_form.css
+│   └── js/                # Enhanced JavaScript
+│       ├── form_builder.js
+│       └── public_form.js
+├── templates/             # HTML templates
+│   ├── form_builder_modern.html
+│   ├── my_forms_modern.html
+│   ├── public_form_modern.html
+│   └── ...
+├── tests/                 # Comprehensive test suite
+│   ├── test_question_types.py
+│   ├── test_forms.py
+│   ├── test_public_forms.py
+│   └── conftest.py
+└── .github/               # GitHub Actions CI/CD
+    └── workflows/
+        └── tests.yml
 ```
 
 ## API Endpoints
@@ -137,9 +191,9 @@ aForm/
 - `DELETE /api/form/<name>/collaborators/<user_id>` - Remove collaborator
 
 ### Public Forms
-- `GET /form/<name>` - Public form view
-- `POST /form/<name>/submit` - Submit form response
-- `GET /form/<name>/submissions` - View submissions
+- `GET /submit/<name>` - Public form view with all question types
+- `POST /api/form/<name>/submit` - Submit form response with validation
+- `GET /form/<name>/submissions` - View submissions with all data types
 
 ## Technologies Used
 
@@ -151,9 +205,36 @@ aForm/
 - **Icons**: Feather Icons
 - **Storage**: MongoDB (production-ready)
 
+## Testing
+
+The application includes comprehensive test coverage for all features:
+
+### Running Tests
+
+```bash
+# Run all tests
+python -m pytest
+
+# Run specific test files
+python -m pytest tests/test_question_types.py -v
+python -m pytest tests/test_forms.py -v
+
+# Run with coverage
+python -m pytest --cov=. --cov-report=html
+```
+
+### Test Coverage
+
+- **Question Types**: Complete validation testing for all 13 question types
+- **Form Management**: CRUD operations, permissions, collaboration
+- **Authentication**: Google OAuth flow, session management
+- **Public Forms**: Form rendering, submission handling, data validation
+- **Email Integration**: Invitation emails, SMTP configuration
+- **Database**: MongoDB operations, data serialization
+
 ## Development
 
-The application now uses MongoDB for data storage, making it production-ready and scalable. For local development, ensure MongoDB is running on your system.
+The application uses MongoDB for data storage, making it production-ready and scalable. For local development, ensure MongoDB is running on your system.
 
 ### Running in Development Mode
 
@@ -162,6 +243,14 @@ python main.py
 ```
 
 The app runs with `debug=True` by default, enabling hot reload and detailed error messages.
+
+### Development Features
+
+- **Hot Reload**: Automatic server restart on code changes
+- **Error Handling**: Detailed error messages with stack traces
+- **MongoDB Integration**: Full database operations with proper serialization
+- **Session Management**: Secure session handling with Google OAuth
+- **CI/CD**: GitHub Actions workflow for automated testing
 
 ## Contributing
 
