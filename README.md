@@ -153,3 +153,7 @@ python -m pytest --cov=. --cov-report=html
 - SMTP configuration support
 - Email template customization
 - Fallback for development environments
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
